@@ -33,7 +33,7 @@ $q = mysqli_query($conn,"SELECT * FROM users ORDER BY id DESC");
 <th>ID</th>
 <th>Fullname</th>
 <th>Role</th>
-<th>Availability</th>
+<th>Attendance</th>
 <th>Action</th>
 </tr>
 </thead>
@@ -47,7 +47,26 @@ $q = mysqli_query($conn,"SELECT * FROM users ORDER BY id DESC");
 <td><?= $row['id'] ?></td>
 <td><?= htmlspecialchars($row['fullname']) ?></td>
 <td><?= $row['role'] ?></td>
-<td><?= $row['availability'] ? 'Available' : 'Offline' ?></td>
+
+<td>
+
+<div style="display:flex;flex-direction:column;gap:6px;width:90px">
+
+<a href="time_in.php?id=<?= $row['id'] ?>" 
+class="action-btn action-success"
+onclick="return confirm('Time IN this staff?')">
+IN
+</a>
+
+<a href="time_out.php?id=<?= $row['id'] ?>" 
+class="action-btn action-danger"
+onclick="return confirm('Time OUT this staff?')">
+OUT
+</a>
+
+</div>
+
+</td>
 
 <td>
 
