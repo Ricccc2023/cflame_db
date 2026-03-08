@@ -2,9 +2,12 @@
 require_once '../../includes/config.php';
 require_once '../../includes/auth.php';
 
-$customers = mysqli_query($conn,"SELECT * FROM customers");
+$order_id = $_GET['order'] ?? null;
+$error = "";
 
-if($_SERVER['REQUEST_METHOD']=="POST"){
+/* CREATE ORDER FIRST */
+
+if(isset($_POST['start_order'])){
 
 $customer = $_POST['customer'];
 $date = $_POST['date'];
@@ -16,15 +19,93 @@ VALUES ('$customer','$date',0)
 
 $order_id = mysqli_insert_id($conn);
 
-header("Location:add_items.php?id=$order_id");
+header("Location:create.php?order=".$order_id);
 exit;
 }
+
+
+/* ADD PRODUCT */
+
+if(isset($_POST['add_product'])){
+
+$order_id = $_POST['order_id'];
+$product_id = $_POST['product'];
+$qty = $_POST['qty'];
+
+$product = mysqli_fetch_assoc(
+mysqli_query($conn,"SELECT * FROM products WHERE id=$product_id")
+);
+
+if($qty > $product['quantity']){
+
+$error = "Not enough stock available.";
+
+}else{
+
+$price = $product['price'];
+$subtotal = $price * $qty;
+
+mysqli_query($conn,"
+INSERT INTO order_items
+(order_id,product_id,quantity,price,subtotal)
+VALUES
+('$order_id','$product_id','$qty','$price','$subtotal')
+");
+
+/* UPDATE INVENTORY */
+
+mysqli_query($conn,"
+UPDATE products
+SET quantity = quantity - $qty
+WHERE id=$product_id
+");
+
+header("Location:create.php?order=".$order_id);
+exit;
+
+}
+
+}
+
+
+/* CONFIRM ORDER */
+
+if(isset($_POST['confirm_order'])){
+
+$order_id = $_POST['order_id'];
+
+$total = mysqli_fetch_assoc(mysqli_query($conn,"
+SELECT SUM(subtotal) as total
+FROM order_items
+WHERE order_id=$order_id
+"));
+
+mysqli_query($conn,"
+UPDATE orders
+SET total=".$total['total']."
+WHERE id=$order_id
+");
+
+header("Location:view.php?id=".$order_id);
+exit;
+
+}
+
+
+$customers = mysqli_query($conn,"SELECT * FROM customers");
+$products = mysqli_query($conn,"SELECT * FROM products WHERE quantity > 0");
+
 ?>
 
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/sidebar.php'; ?>
 
 <div class="main">
+
+
+<?php if(!$order_id): ?>
+
+<!-- CREATE ORDER -->
 
 <div class="card form-wrapper">
 
@@ -34,6 +115,7 @@ exit;
 
 <div class="form-row">
 <label>Customer</label>
+
 <select name="customer">
 
 <?php while($c=mysqli_fetch_assoc($customers)): ?>
@@ -45,6 +127,7 @@ exit;
 <?php endwhile; ?>
 
 </select>
+
 </div>
 
 <div class="form-row">
@@ -52,11 +135,136 @@ exit;
 <input type="date" name="date" required>
 </div>
 
-<button class="btn-save">Next</button>
+<button class="btn-save" name="start_order">
+Start Order
+</button>
 
 </form>
 
 </div>
+
+<?php else: ?>
+
+<!-- ADD PRODUCTS -->
+
+<div class="card">
+
+<h2>Add Products to Order</h2>
+
+<form method="POST">
+
+<input type="hidden" name="order_id" value="<?= $order_id ?>">
+
+<div class="form-row">
+<label>Product</label>
+
+<select name="product">
+
+<?php while($p=mysqli_fetch_assoc($products)): ?>
+
+<option value="<?= $p['id'] ?>">
+<?= $p['product_name'] ?> (Stock: <?= $p['quantity'] ?>)
+</option>
+
+<?php endwhile; ?>
+
+</select>
+
+</div>
+
+<div class="form-row">
+<label>Quantity</label>
+<input type="number" name="qty" required>
+</div>
+
+<div style="display:flex; align-items:center; gap:10px;">
+
+<button class="btn-save" name="add_product">
+Add Product
+</button>
+
+<?php if(!empty($error)): ?>
+<span style="color:#dc3545;font-weight:600;">
+<?= $error ?>
+</span>
+<?php endif; ?>
+
+</div>
+
+</form>
+
+</div>
+
+
+<!-- ORDER ITEMS -->
+
+<div class="card">
+
+<h2>Order Items</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>Product</th>
+<th>Qty</th>
+<th>Price</th>
+<th>Subtotal</th>
+</tr>
+</thead>
+
+<tbody>
+
+<?php
+
+$items = mysqli_query($conn,"
+SELECT order_items.*,products.product_name
+FROM order_items
+LEFT JOIN products
+ON products.id = order_items.product_id
+WHERE order_id = $order_id
+");
+
+$total = 0;
+
+while($row=mysqli_fetch_assoc($items)):
+
+$total += $row['subtotal'];
+
+?>
+
+<tr>
+
+<td><?= $row['product_name'] ?></td>
+<td><?= $row['quantity'] ?></td>
+<td>₱<?= number_format($row['price'],2) ?></td>
+<td>₱<?= number_format($row['subtotal'],2) ?></td>
+
+</tr>
+
+<?php endwhile; ?>
+
+</tbody>
+
+</table>
+
+<h3>Total: ₱<?= number_format($total,2) ?></h3>
+
+<form method="POST">
+
+<input type="hidden" name="order_id" value="<?= $order_id ?>">
+
+<button class="btn-save" name="confirm_order">
+Confirm Order
+</button>
+
+</form>
+
+</div>
+
+<?php endif; ?>
+
+
 </div>
 
 <?php include '../../includes/footer.php'; ?>
