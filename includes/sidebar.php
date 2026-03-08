@@ -20,6 +20,10 @@ Users
 </a>
 <?php endif; ?>
 
+<a href="<?= BASE_URL ?>/customers/index.php">
+Customers
+</a> 
+
 <!-- INVENTORY (ADMIN + STAFF) -->
 <a href="<?= BASE_URL ?>/inventory/index.php">
 Inventory
