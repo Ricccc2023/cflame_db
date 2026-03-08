@@ -11,7 +11,13 @@ $product = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM products WHERE i
 <?php include '../../includes/sidebar.php'; ?>
 
 <div class="main">
+<div class="page-header">
 
+<div class="page-action">
+<a href="index.php" class="btn-decline">Back</a>
+</div>
+
+</div>
 <div class="card">
 
 <h2>Product Details</h2>

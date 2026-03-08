@@ -35,7 +35,13 @@ exit;
 <?php include '../../includes/sidebar.php'; ?>
 
 <div class="main">
+<div class="page-header">
 
+<div class="page-action">
+<a href="index.php" class="btn-decline">Back</a>
+</div>
+
+</div>
 <div class="card form-wrapper">
 
 <h2>Add Product</h2>

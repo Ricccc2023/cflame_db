@@ -24,9 +24,18 @@ WHERE order_items.order_id = $id
 
 <div class="main">
 
+<div class="page-header">
+
+<div class="page-action">
+<a href="index.php" class="btn-decline">Back</a>
+</div>
+
+</div>
+
 <div class="card">
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+
 
 <h2>Order #<?= $order['id'] ?></h2>
 

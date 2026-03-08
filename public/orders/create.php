@@ -103,6 +103,14 @@ $products = mysqli_query($conn,"SELECT * FROM products WHERE quantity > 0");
 <div class="main">
 
 
+<div class="page-header">
+
+<div class="page-action">
+<a href="index.php" class="btn-decline">Back</a>
+</div>
+
+</div>
+
 <?php if(!$order_id): ?>
 
 <!-- CREATE ORDER -->

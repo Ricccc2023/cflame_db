@@ -33,6 +33,9 @@ Inventory
 Orders
 </a>
 
+<a href="<?= BASE_URL ?>/pendings/index.php">
+Pending 
+</a>
 </div>
 
 <div class="power">
