@@ -28,6 +28,7 @@ $result = mysqli_query($conn,$sql);
 
 </div>
 
+
 <div class="card">
 
 <table>
@@ -35,6 +36,7 @@ $result = mysqli_query($conn,$sql);
 <thead>
 <tr>
 <th>ID</th>
+<th>Invoice</th>
 <th>Customer</th>
 <th>Date</th>
 <th>Total</th>
@@ -49,8 +51,15 @@ $result = mysqli_query($conn,$sql);
 <tr>
 
 <td><?= $row['id'] ?></td>
+
+<td>
+<b><?= $row['invoice_no'] ?></b>
+</td>
+
 <td><?= $row['customer_name'] ?></td>
+
 <td><?= $row['order_date'] ?></td>
+
 <td>₱<?= number_format($row['total'],2) ?></td>
 
 <td>
@@ -60,6 +69,11 @@ $result = mysqli_query($conn,$sql);
 <a class="action-btn action-success"
 href="view.php?id=<?= $row['id'] ?>">
 View
+</a>
+
+<a class="action-btn action-secondary"
+href="print.php?id=<?= $row['id'] ?>" target="_blank">
+Print
 </a>
 
 </div>
@@ -75,6 +89,7 @@ View
 </table>
 
 </div>
+
 </div>
 
 <?php include '../../includes/footer.php'; ?>

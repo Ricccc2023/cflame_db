@@ -40,7 +40,6 @@ $result = mysqli_query($conn,"SELECT * FROM products ORDER BY id DESC");
 <th>Unit</th>
 <th>Price</th>
 <th>Storage</th>
-<th>Status</th>
 <th>Actions</th>
 </tr>
 </thead>
@@ -60,7 +59,6 @@ $result = mysqli_query($conn,"SELECT * FROM products ORDER BY id DESC");
 <td><?php echo $row['unit']; ?></td>
 <td>₱<?php echo number_format($row['price'],2); ?></td>
 <td><?php echo $row['storage_location']; ?></td>
-<td><?php echo $row['status']; ?></td>
 
 <td>
 <div class="actions">
