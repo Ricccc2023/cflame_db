@@ -6,16 +6,57 @@ include "../../includes/sidebar.php";
 
 $id = intval($_GET['id']);
 
-/* USER DATA */
-$data = mysqli_query($conn,"SELECT * FROM users WHERE id=$id");
-$row = mysqli_fetch_assoc($data);
+/* USER INFO */
 
-/* ATTENDANCE DATA */
-$attendance = mysqli_query($conn,"
-SELECT * FROM attendance
+$userQuery = mysqli_query($conn,"SELECT * FROM users WHERE id=$id");
+
+if(!$userQuery){
+die(mysqli_error($conn));
+}
+
+$user = mysqli_fetch_assoc($userQuery);
+
+
+/* CALENDAR SETTINGS */
+
+$month = date('m');
+$year  = date('Y');
+
+$monthName = date('F');
+
+$daysInMonth = cal_days_in_month(CAL_GREGORIAN,$month,$year);
+$firstDay = date('w', strtotime("$year-$month-01"));
+
+
+/* GET ATTENDANCE DAYS */
+
+$attQuery = mysqli_query($conn,"
+SELECT DATE(time) as att_date
+FROM attendance
 WHERE user_id = $id
+AND MONTH(time) = $month
+AND YEAR(time) = $year
+");
+
+$attendance = [];
+
+if($attQuery){
+
+while($r = mysqli_fetch_assoc($attQuery)){
+$attendance[$r['att_date']] = true;
+}
+
+}
+
+
+/* RECENT LOGS */
+
+$logs = mysqli_query($conn,"
+SELECT *
+FROM attendance
+WHERE user_id=$id
 ORDER BY time DESC
-LIMIT 30
+LIMIT 20
 ");
 ?>
 
@@ -24,35 +65,47 @@ LIMIT 30
 <div class="page-header">
 
 <div class="page-title">
-<h2>View User</h2>
-<p class="sub">User information</p>
+<h2><?= htmlspecialchars($user['fullname']) ?></h2>
+<p class="sub">Staff Attendance Overview</p>
+</div>
+
+<div class="page-action">
+<a href="index.php" class="btn-decline">Back</a>
 </div>
 
 </div>
+
+
+<div style="display:flex;gap:20px;align-items:flex-start;">
+
+
+<div style="flex:1;">
 
 
 <div class="card">
+
+<h3>User Information</h3>
 
 <table class="result-table">
 
 <tr>
 <th>ID</th>
-<td><?= $row['id'] ?></td>
+<td><?= $user['id'] ?></td>
 </tr>
 
 <tr>
 <th>Full Name</th>
-<td><?= htmlspecialchars($row['fullname']) ?></td>
+<td><?= htmlspecialchars($user['fullname']) ?></td>
 </tr>
 
 <tr>
 <th>Username</th>
-<td><?= htmlspecialchars($row['username']) ?></td>
+<td><?= htmlspecialchars($user['username']) ?></td>
 </tr>
 
 <tr>
 <th>Role</th>
-<td><?= $row['role'] ?></td>
+<td><?= $user['role'] ?></td>
 </tr>
 
 </table>
@@ -62,7 +115,7 @@ LIMIT 30
 
 <div class="card">
 
-<h3>Attendance Calendar</h3>
+<h3>Recent Attendance Logs</h3>
 
 <table class="result-table">
 
@@ -72,9 +125,15 @@ LIMIT 30
 <th>Status</th>
 </tr>
 
-<?php if($attendance && mysqli_num_rows($attendance) > 0){ ?>
+<?php if(!$logs || mysqli_num_rows($logs)==0){ ?>
 
-<?php while($a = mysqli_fetch_assoc($attendance)) { ?>
+<tr>
+<td colspan="3">No attendance records yet</td>
+</tr>
+
+<?php } else { ?>
+
+<?php while($a = mysqli_fetch_assoc($logs)){ ?>
 
 <tr>
 
@@ -84,13 +143,13 @@ LIMIT 30
 
 <td>
 
-<?php if($a['type'] == "IN"){ ?>
+<?php if($a['type']=="IN"){ ?>
 
-<span style="color:green;font-weight:bold">IN</span>
+<span style="color:#198754;font-weight:bold;">IN</span>
 
 <?php } else { ?>
 
-<span style="color:red;font-weight:bold">OUT</span>
+<span style="color:#dc3545;font-weight:bold;">OUT</span>
 
 <?php } ?>
 
@@ -100,15 +159,85 @@ LIMIT 30
 
 <?php } ?>
 
-<?php } else { ?>
-
-<tr>
-<td colspan="3" style="text-align:center;">No attendance records yet</td>
-</tr>
-
 <?php } ?>
 
 </table>
+
+</div>
+
+</div>
+
+
+<div style="width:350px;">
+
+<div class="card">
+
+<h3 style="margin-bottom:10px;">
+Attendance — <?= $monthName ?> <?= $year ?>
+</h3>
+
+<table style="text-align:center;width:100%;">
+
+<thead>
+
+<tr>
+<th>Sun</th>
+<th>Mon</th>
+<th>Tue</th>
+<th>Wed</th>
+<th>Thu</th>
+<th>Fri</th>
+<th>Sat</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<?php
+
+$counter=0;
+
+for($i=0;$i<$firstDay;$i++){
+echo "<td></td>";
+$counter++;
+}
+
+for($d=1;$d<=$daysInMonth;$d++){
+
+$dateCheck="$year-$month-".str_pad($d,2,'0',STR_PAD_LEFT);
+
+$color="#ffffff";
+$text="#000";
+
+if(isset($attendance[$dateCheck])){
+$color="#198754";
+$text="#fff";
+}
+
+echo "<td style='background:$color;color:$text;font-weight:600;'>$d</td>";
+
+$counter++;
+
+if($counter%7==0){
+echo "</tr><tr>";
+}
+
+}
+
+?>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
 
 </div>
 

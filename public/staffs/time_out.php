@@ -10,3 +10,4 @@ VALUES ($id,'OUT')
 ");
 
 header("Location: index.php");
+exit;
