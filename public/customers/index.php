@@ -1,69 +1,95 @@
 <?php
-include "../../includes/auth.php";
-include "../../includes/config.php";
-include "../../includes/header.php";
-include "../../includes/sidebar.php";
+require_once '../../includes/config.php';
+require_once '../../includes/auth.php';
 
-$q = mysqli_query($conn,"SELECT * FROM customers ORDER BY id DESC");
+$sql="SELECT * FROM pending_orders ORDER BY id DESC";
+$result=mysqli_query($conn,$sql);
 ?>
+
+<?php include '../../includes/header.php'; ?>
+<?php include '../../includes/sidebar.php'; ?>
 
 <div class="main">
 
 <div class="page-header">
 
 <div class="page-title">
-<h2>Customers</h2>
-<p class="sub">Customers who purchased equipment</p>
+<h2>Pending Orders</h2>
+<p class="sub">Orders waiting approval</p>
 </div>
 
 <div class="page-action">
-<a href="create.php" class="btn-add">+ Add Customer</a>
+<a href="create.php" class="btn-add">+ Create Pending</a>
 </div>
 
 </div>
 
 <div class="card">
 
-<div class="table-wrap">
-
 <table>
 
 <thead>
+
 <tr>
 <th>ID</th>
-<th>Customer Name</th>
-<th>Contact</th>
-<th>Address</th>
-<th>Action</th>
+<th>Customer</th>
+<th>Products</th>
+<th>Date</th>
+<th>Actions</th>
 </tr>
+
 </thead>
 
 <tbody>
 
-<?php while($row = mysqli_fetch_assoc($q)) { ?>
+<?php while($row=mysqli_fetch_assoc($result)): ?>
 
 <tr>
 
 <td><?= $row['id'] ?></td>
-<td><?= htmlspecialchars($row['customer_name']) ?></td>
-<td><?= htmlspecialchars($row['contact']) ?></td>
-<td><?= htmlspecialchars($row['address']) ?></td>
+
+<td><?= $row['customer_name'] ?></td>
 
 <td>
 
-<div class="actions">
+<?php
 
-<a href="view.php?id=<?= $row['id'] ?>" class="action-btn action-secondary">View</a>
+$items=mysqli_query($conn,"
+SELECT pending_order_items.*,products.product_name
+FROM pending_order_items
+LEFT JOIN products ON products.id=pending_order_items.product_id
+WHERE pending_order_items.pending_order_id=".$row['id']."
+");
 
-<a href="edit.php?id=<?= $row['id'] ?>" class="action-btn action-success">Edit</a>
+while($item=mysqli_fetch_assoc($items)){
 
-</div>
+echo $item['product_name']." (".$item['quantity'].")<br>";
+
+}
+
+?>
+
+</td>
+
+<td><?= $row['created_at'] ?></td>
+
+<td>
+
+<a class="action-btn action-success"
+href="confirm.php?id=<?= $row['id'] ?>">
+Confirm
+</a>
+
+<a class="action-btn action-danger"
+href="decline.php?id=<?= $row['id'] ?>">
+Decline
+</a>
 
 </td>
 
 </tr>
 
-<?php } ?>
+<?php endwhile; ?>
 
 </tbody>
 
@@ -73,6 +99,4 @@ $q = mysqli_query($conn,"SELECT * FROM customers ORDER BY id DESC");
 
 </div>
 
-</div>
-
-<?php include "../../includes/footer.php"; ?>
+<?php include '../../includes/footer.php'; ?>
