@@ -76,9 +76,26 @@ No orders found for this customer.
 
 <div class="card">
 
+<div style="display:flex;justify-content:space-between;align-items:center;">
+
 <h3>
 Transaction #<?= $order['id'] ?>
 </h3>
+
+<a href="../orders/print.php?id=<?= $order['id'] ?>" target="_blank">
+<button style="
+padding:6px 12px;
+background:#000;
+color:white;
+border:none;
+cursor:pointer;
+border-radius:4px;
+">
+Print Receipt
+</button>
+</a>
+
+</div>
 
 <p>
 Order Date: <?= $order['order_date'] ?>

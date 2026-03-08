@@ -222,7 +222,7 @@ Print Receipt
 </table>
 
 
-<h3 style="margin-top:20px;">ORDER ITEMS</h3>
+<h3 style="margin-top:20px;">ORDERED ITEMS</h3>
 
 <table>
 
