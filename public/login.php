@@ -1,106 +1,85 @@
 <?php
 session_start();
-require_once __DIR__ . '/../includes/config.php';
+include "../includes/config.php";
 
-// If already logged in
-if (isset($_SESSION['user'])) {
-    header("Location: dashboard.php");
-    exit;
-}
+$error = "";
 
-$error = '';
+if($_SERVER["REQUEST_METHOD"] == "POST"){
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST["username"];
+    $password = $_POST["password"];
 
-    $username = trim($_POST['username'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $q = mysqli_query($conn,"SELECT * FROM users WHERE username='$username' AND password='$password'");
 
-    if ($username === '' || $password === '') {
+    if(mysqli_num_rows($q) > 0){
 
-        $error = "Username and password are required.";
+        $user = mysqli_fetch_assoc($q);
 
-    } else {
+$_SESSION["user_id"] = $user["id"];
+$_SESSION["role"] = $user["role"];
+$_SESSION["fullname"] = $user["fullname"];
 
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username LIMIT 1");
-        $stmt->execute([':username' => $username]);
-        $user = $stmt->fetch();
+        header("Location: dashboard.php");
+        exit;
 
-        // Plain text password comparison
-        if ($user && $password === $user['password']) {
-
-            $_SESSION['user'] = [
-                'id'   => (int)$user['id'],
-                'name' => $user['full_name'],
-                'role' => $user['role']
-            ];
-
-            header("Location: dashboard.php");
-            exit;
-
-        } else {
-
-            $error = "Invalid login credentials.";
-
-        }
+    }else{
+        $error = "Invalid username or password.";
     }
 }
 ?>
 
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
 
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Clinic Login</title>
+<title>CFLAME System Login</title>
 
-<link rel="stylesheet" href="/clinic_db/clinic/assets/css/clinic.css">
-
+<link rel="stylesheet" href="/cflame_db/fireprotection/assets/css/main.css">
 </head>
 
 <body>
 
-<!-- SYSTEM BANNER -->
+<!-- TOP BAR -->
 <div class="topbar" style="text-align:center;">
-<div style="font-weight:700;">
-The New Santor Clinic and Diagnostic Center Web-Based Management System
-</div>
+CFLAME Fire Protection Equipment Management System
 </div>
 
-<div style="max-width:420px;margin:10vh auto;padding:0 14px;">
 
-<div class="card">
+<!-- CENTER LOGIN -->
+<div class="center-wrapper">
 
-<h2>Clinic Login</h2>
+<div class="card" style="width:420px;">
+
+<h2>System Login</h2>
 <p class="sub">Please login to continue.</p>
 
-<?php if ($error): ?>
-
-<div class="card" style="border-color:rgba(197,215,230,0.25);background:rgba(92,128,207,0.06)">
-<b style="color:red"><?= htmlspecialchars($error) ?></b>
+<?php if($error): ?>
+<div class="error-box">
+<b><?= htmlspecialchars($error) ?></b>
 </div>
-
-<div style="height:10px"></div>
-
 <?php endif; ?>
 
-<form method="post">
+<form method="POST">
 
 <div class="field">
 <label>Username</label>
-<input class="input" name="username" autocomplete="username" required>
+<input type="text" name="username" required>
 </div>
-
-<div style="height:10px"></div>
 
 <div class="field">
 <label>Password</label>
-<input type="password" class="input" name="password" autocomplete="current-password" required>
+<input type="password" name="password" required>
 </div>
 
 <div class="actions">
-<button class="btn-save" type="submit">Login</button>
+
+<button class="btn-save" type="submit">
+Login
+</button>
+
 </div>
 
 </form>

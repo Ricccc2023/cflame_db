@@ -1,8 +1,7 @@
 <?php
-require_once __DIR__ . "/../includes/config.php";
-
-unset($_SESSION['user']);
+session_start();
 session_destroy();
 
 header("Location: login.php");
 exit;
+?>
