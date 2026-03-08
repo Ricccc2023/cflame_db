@@ -1,8 +1,10 @@
 <?php
 require_once '../../includes/config.php';
+session_start();
 
 $id = intval($_GET['id']);
 
+/* GET ORDER + CUSTOMER */
 $order = mysqli_fetch_assoc(mysqli_query($conn,"
 SELECT 
 orders.*,
@@ -13,6 +15,7 @@ LEFT JOIN customers ON customers.id = orders.customer_id
 WHERE orders.id = $id
 "));
 
+/* GET ORDER ITEMS */
 $items = mysqli_query($conn,"
 SELECT 
 order_items.*,
@@ -22,7 +25,10 @@ LEFT JOIN products ON products.id = order_items.product_id
 WHERE order_items.order_id = $id
 ");
 
+/* GET CURRENT USER */
+$staff = $_SESSION['fullname'] ?? "Authorized Staff";
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -32,7 +38,7 @@ WHERE order_items.order_id = $id
 <style>
 
 body{
-font-family: Arial;
+font-family: Arial, sans-serif;
 background:#f4f6f9;
 padding:30px;
 }
@@ -42,13 +48,14 @@ width:900px;
 margin:auto;
 background:#fff;
 padding:40px;
+box-shadow:0 5px 20px rgba(0,0,0,0.08);
 }
 
 .header{
 display:flex;
 justify-content:space-between;
 align-items:center;
-margin-bottom:20px;
+margin-bottom:25px;
 }
 
 .logo-section{
@@ -59,17 +66,24 @@ gap:15px;
 
 .logo-section img{
 width:60px;
+height:60px;
+object-fit:contain;
 }
 
 .clinic-name{
-font-size:22px;
+font-size:24px;
 font-weight:bold;
 }
 
 .header-info{
 text-align:right;
-font-size:14px;
 }
+
+.header-info h2{
+margin:0;
+}
+
+/* TABLE */
 
 table{
 width:100%;
@@ -87,8 +101,52 @@ th{
 background:#f2f4f7;
 }
 
+/* PRINT BUTTON */
+
+.no-print{
+margin-bottom:10px;
+}
+
 @media print{
-body{padding:0;background:white;}
+
+body{
+padding:0;
+background:white;
+}
+
+.no-print{
+display:none;
+}
+
+.report-container{
+box-shadow:none;
+width:100%;
+}
+
+}
+
+/* SIGNATURE */
+
+.signature-area{
+margin-top:60px;
+display:flex;
+justify-content:flex-end;
+}
+
+.signature-box{
+text-align:center;
+width:250px;
+}
+
+.signature-line{
+border-top:1px solid #000;
+margin-top:60px;
+}
+
+.signature-label{
+margin-top:5px;
+font-size:13px;
+font-weight:bold;
 }
 
 </style>
@@ -106,14 +164,29 @@ body{padding:0;background:white;}
 <img src="logo.png">
 
 <div>
-<div class="clinic-name">CFLAME STORE</div>
-<div>Laguna Philippines</div>
+<div class="clinic-name">C'Flame Fire Protection Product Trading</div>
+<div>MPJR BLDG General Malvar Ave, Poblacion 4, Santo Tomas, Philippines, 4234</div>
 </div>
 
 </div>
 
 <div class="header-info">
+
+<div class="no-print">
+<button onclick="window.print()" style="
+padding:8px 15px;
+background:#000;
+border:none;
+color:white;
+cursor:pointer;
+border-radius:4px;
+">
+Print Receipt
+</button>
+</div>
+
 <h2>RECEIPT</h2>
+
 </div>
 
 </div>
@@ -186,13 +259,24 @@ body{padding:0;background:white;}
 
 </table>
 
-<p style="margin-top:20px;">Printed by System</p>
+
+<!-- SIGNATURE -->
+
+<div class="signature-area">
+
+<div class="signature-box">
+
+<div class="signature-line"></div>
+
+<div class="signature-label">
+<?= $staff ?>
+</div>
 
 </div>
 
-<script>
-window.print();
-</script>
+</div>
+
+</div>
 
 </body>
 </html>

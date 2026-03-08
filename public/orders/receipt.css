@@ -53,6 +53,79 @@ body{
     padding:6px;
     font-size:12px;
 }
+body{
+font-family: Arial;
+background:#f4f6f9;
+padding:30px;
+}
+
+.report-container{
+width:900px;
+margin:auto;
+background:#fff;
+padding:40px;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.logo-section{
+display:flex;
+align-items:center;
+gap:15px;
+}
+
+.logo-section img{
+width:60px;
+}
+
+.clinic-name{
+font-size:22px;
+font-weight:bold;
+}
+
+.header-info{
+text-align:right;
+font-size:14px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+th,td{
+border:1px solid #ddd;
+padding:8px;
+font-size:13px;
+}
+
+th{
+background:#f2f4f7;
+}
+
+/* Hide button when printing */
+.no-print{
+margin-bottom:10px;
+}
+
+@media print{
+
+body{
+padding:0;
+background:white;
+}
+
+.no-print{
+display:none;
+}
+
+}
 
 @media print{
     body{

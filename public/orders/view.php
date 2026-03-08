@@ -33,7 +33,7 @@ WHERE order_items.order_id = $id
 <a href="print.php?id=<?= $order['id'] ?>" target="_blank">
 <button style="
 padding:8px 15px;
-background:#28a745;
+background:#000000;
 border:none;
 color:white;
 cursor:pointer;

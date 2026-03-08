@@ -35,7 +35,7 @@ $_SESSION["fullname"] = $user["fullname"];
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>CFLAME System Login</title>
+<title>C'Flame Fire Protection Product Trading Login</title>
 
 <link rel="stylesheet" href="/cflame_db/fireprotection/assets/css/main.css">
 </head>
