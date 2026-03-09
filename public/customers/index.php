@@ -12,7 +12,7 @@ $q = mysqli_query($conn,"SELECT * FROM customers ORDER BY id DESC");
 <div class="page-header">
 
 <div class="page-title">
-<h2>Customers</h2>
+<h2>Customers Management</h2>
 <p class="sub">Customers who purchased equipment</p>
 </div>
 
