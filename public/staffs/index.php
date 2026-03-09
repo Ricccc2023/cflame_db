@@ -14,7 +14,6 @@ $q = mysqli_query($conn,"SELECT * FROM users WHERE role != 'admin' ORDER BY id D
 
 <div class="page-title">
 <h2>User Management</h2>
-<p class="sub">Manage system users</p>
 </div>
 
 <div class="page-action">

@@ -14,7 +14,6 @@ $result = mysqli_query($conn,"SELECT * FROM products ORDER BY id DESC");
 
 <div class="page-title">
 <h2>Inventory Management</h2>
-<p class="sub">Equipment List</p>
 </div>
 
 <div class="page-action">

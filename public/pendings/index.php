@@ -16,8 +16,6 @@ $result = mysqli_query($conn,$sql);
 <div class="page-title">
 
 <h2>Pending Orders</h2>
-<p class="sub">Orders waiting approval</p>
-
 <?php if(isset($_GET['error'])): ?>
 
 <div style="

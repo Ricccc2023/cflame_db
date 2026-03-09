@@ -19,7 +19,6 @@ $result = mysqli_query($conn,$sql);
 
 <div class="page-title">
 <h2>Orders Management</h2>
-<p class="sub">Sales Orders</p>
 </div>
 
 <div class="page-action">
