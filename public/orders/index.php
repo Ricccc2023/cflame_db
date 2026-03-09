@@ -18,7 +18,7 @@ $result = mysqli_query($conn,$sql);
 <div class="page-header">
 
 <div class="page-title">
-<h2>Orders Management</h2>
+<h2>Order Management</h2>
 </div>
 
 <div class="page-action">
