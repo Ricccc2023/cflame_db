@@ -16,7 +16,6 @@ header("Location:index.php");
 exit;
 }
 
-
 /* ===============================
 GET ITEMS + STOCK
 =============================== */
@@ -30,7 +29,6 @@ LEFT JOIN products
 ON products.id = pending_order_items.product_id
 WHERE pending_order_items.pending_order_id = $id
 ");
-
 
 /* ===============================
 CHECK STOCK
@@ -61,28 +59,36 @@ exit;
 
 /* ===============================
 CUSTOMER DETECTION
-NAME + CONTACT
+NO DUPLICATE
 =============================== */
 
-$name = mysqli_real_escape_string($conn,$pending['customer_name']);
-$contact = mysqli_real_escape_string($conn,$pending['contact']);
-$address = mysqli_real_escape_string($conn,$pending['address']);
+$name = trim($pending['customer_name']);
+$contact = trim($pending['contact']);
+$address = trim($pending['address']);
+
+$name = mysqli_real_escape_string($conn,$name);
+$contact = mysqli_real_escape_string($conn,$contact);
+$address = mysqli_real_escape_string($conn,$address);
+
+
+/*
+CHECK EXISTING CUSTOMER
+MATCH BY NAME OR CONTACT
+*/
 
 $check = mysqli_query($conn,"
 SELECT * FROM customers
-WHERE customer_name='$name'
-AND contact='$contact'
+WHERE TRIM(customer_name)='$name'
+OR TRIM(contact)='$contact'
 LIMIT 1
 ");
 
 if(mysqli_num_rows($check)>0){
 
-/* EXISTING CUSTOMER */
-
 $customer=mysqli_fetch_assoc($check);
 $customer_id=$customer['id'];
 
-/* UPDATE ADDRESS IF CHANGED */
+/* OPTIONAL UPDATE ADDRESS */
 
 mysqli_query($conn,"
 UPDATE customers
@@ -202,3 +208,4 @@ WHERE id=$id
 
 header("Location: ../orders/index.php");
 exit;
+?>

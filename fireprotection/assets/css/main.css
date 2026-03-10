@@ -834,7 +834,21 @@ tr:hover {
     border-radius: 6px;
     transition: 0.3s ease;
 }
-
+.archive {
+    background: #a39191;  /* same green */
+    color: #fff;
+    border: none;
+    padding: 8px 14px;    /* SAME as search button */
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+.archive:hover {
+    background: #1f4e46;
+}
 .admin-btn:hover {
     background: #e6e6e6;
 }

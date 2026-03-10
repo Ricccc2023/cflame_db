@@ -168,7 +168,13 @@ Submit Order
 <li>Click <b>Submit Order</b>.</li>
 
 <li>Wait for admin confirmation.</li>
+<ul>Note:</ul>
+<UL style="list-style-type:square;">
 
+        <li>THE CONTACT NUMBER YOU ENTERED WILL BE INDICATED IF YOUR ORDER IS CONFIRMED OR DECLINED.</li>
+
+
+</ul>
 </ol>
 
 </div>

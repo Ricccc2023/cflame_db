@@ -22,7 +22,7 @@ $fullname = $_SESSION["fullname"] ?? "User";
 <div style="display:flex; justify-content:space-between; align-items:center;">
 
 <div>
-CFLAME Fire Protection Equipment Management System
+C'FLAME Fire Protection Equipment Management System
 </div>
 
 <div style="font-size:14px;">

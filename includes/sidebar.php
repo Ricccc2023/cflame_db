@@ -8,11 +8,10 @@ $role = $_SESSION['role'] ?? '';
 
 <div class="nav">
 
-<?php if($role === 'admin'): ?>
 <a href="<?= BASE_URL ?>/dashboard.php">
 Dashboard
 </a>
-<?php endif; ?>
+
 
 <?php if($role === 'admin'): ?>
 <a href="<?= BASE_URL ?>/staffs/index.php">

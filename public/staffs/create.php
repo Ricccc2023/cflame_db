@@ -6,18 +6,24 @@ include "../../includes/sidebar.php";
 
 if(isset($_POST['save'])){
 
-$fullname = $_POST['fullname'];
-$username = $_POST['username'];
-$password = $_POST['password'];
-$role = $_POST['role'];
+$fullname = mysqli_real_escape_string($conn,$_POST['fullname']);
+$username = mysqli_real_escape_string($conn,$_POST['username']);
+$password = mysqli_real_escape_string($conn,$_POST['password']);
+$role = mysqli_real_escape_string($conn,$_POST['role']);
 
-mysqli_query($conn,"INSERT INTO users 
-(fullname,username,password,role,availability)
-VALUES
-('$fullname','$username','$password','$role',0)");
+$query = "INSERT INTO users (fullname,username,password,role,availability)
+VALUES ('$fullname','$username','$password','$role',0)";
 
-header("Location: index.php");
-exit;
+$result = mysqli_query($conn,$query);
+
+if($result){
+    echo "<script>
+    window.location='index.php';
+    </script>";
+}else{
+    echo "Error: " . mysqli_error($conn);
+}
+
 }
 ?>
 

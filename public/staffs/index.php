@@ -1,11 +1,42 @@
 <?php
 include "../../includes/auth.php";
 include "../../includes/config.php";
+
+/* ADMIN SECURITY - BLOCK STAFF ACCESS */
+if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin'){
+    
+    echo "<script>
+    alert('Access Denied. Admin only.');
+    window.location='../dashboard.php';
+    </script>";
+    exit;
+
+}
+
+/* =========================
+FILTERS
+========================= */
+
+$nameFilter = $_GET['fullname'] ?? '';
+$roleFilter = $_GET['role'] ?? '';
+$statusFilter = $_GET['status'] ?? '';
+
+$sql = "SELECT * FROM users WHERE role != 'admin'";
+
+if($nameFilter != ""){
+$sql .= " AND fullname LIKE '%$nameFilter%'";
+}
+
+if($roleFilter != ""){
+$sql .= " AND role = '$roleFilter'";
+}
+
+$sql .= " ORDER BY id DESC";
+
+$q = mysqli_query($conn,$sql);
+
 include "../../includes/header.php";
 include "../../includes/sidebar.php";
-
-/* EXCLUDE ADMIN FROM LIST */
-$q = mysqli_query($conn,"SELECT * FROM users WHERE role != 'admin' ORDER BY id DESC");
 ?>
 
 <div class="main">
@@ -18,24 +49,58 @@ $q = mysqli_query($conn,"SELECT * FROM users WHERE role != 'admin' ORDER BY id D
 
 <div class="page-action">
 <a href="create.php" class="btn-add">+ Add User</a>
+<a href="archive.php" class="archive">Archive</a>
 </div>
 
 </div>
 
 <div class="card">
 
+<form method="GET" class="filter-bar">
+
+<input type="text" 
+name="fullname" 
+placeholder="Search Name"
+value="<?= htmlspecialchars($nameFilter) ?>">
+
+<select name="role">
+
+<option value="">All Roles</option>
+
+<option value="staff" <?= $roleFilter=="staff"?'selected':'' ?>>Staff</option>
+
+<option value="admin" <?= $roleFilter=="admin"?'selected':'' ?>>Admin</option>
+
+</select>
+
+<select name="status">
+
+<option value="">All Status</option>
+
+<option value="IN" <?= $statusFilter=="IN"?'selected':'' ?>>On Duty</option>
+
+<option value="OUT" <?= $statusFilter=="OUT"?'selected':'' ?>>Off Duty</option>
+
+</select>
+
+<button class="btn-search">Filter</button>
+
+</form>
+
 <div class="table-wrap">
 
 <table>
 
 <thead>
+
 <tr>
 <th>ID</th>
-<th>Fullname</th>
+<th>Name</th>
 <th>Role</th>
 <th>Status</th>
-<th>Action</th>
+<th>Actions</th>
 </tr>
+
 </thead>
 
 <tbody>
@@ -63,13 +128,21 @@ $r = mysqli_fetch_assoc($last);
 $lastType = $r['type'];
 }
 
+/* STATUS FILTER */
+
+if($statusFilter != "" && $lastType != $statusFilter){
+continue;
+}
+
 ?>
 
 <tr>
 
 <td><?= $row['id'] ?></td>
 
-<td><?= htmlspecialchars($row['fullname']) ?></td>
+<td>
+<strong><?= htmlspecialchars($row['fullname']) ?></strong>
+</td>
 
 <td><?= $row['role'] ?></td>
 
@@ -96,9 +169,7 @@ $lastType = $r['type'];
 <a href="time_out.php?id=<?= $row['id'] ?>"
 class="action-btn action-danger"
 onclick="return confirm('Time OUT this staff?')">
-
 TIME OUT
-
 </a>
 
 <?php } else { ?>
@@ -106,9 +177,7 @@ TIME OUT
 <a href="time_in.php?id=<?= $row['id'] ?>"
 class="action-btn action-success"
 onclick="return confirm('Time IN this staff?')">
-
 TIME IN
-
 </a>
 
 <?php } ?>

@@ -2,7 +2,21 @@
 require_once '../../includes/config.php';
 require_once '../../includes/auth.php';
 
-$sql = "SELECT * FROM pending_orders ORDER BY id DESC";
+$customer = $_GET['customer'] ?? '';
+$payment = $_GET['payment'] ?? '';
+
+$sql = "SELECT * FROM pending_orders WHERE 1=1";
+
+if($customer != ""){
+$sql .= " AND customer_name LIKE '%$customer%'";
+}
+
+if($payment != ""){
+$sql .= " AND mode_of_payment LIKE '%$payment%'";
+}
+
+$sql .= " ORDER BY id DESC";
+
 $result = mysqli_query($conn,$sql);
 ?>
 
@@ -14,24 +28,7 @@ $result = mysqli_query($conn,$sql);
 <div class="page-header">
 
 <div class="page-title">
-
 <h2>Pending Orders</h2>
-<?php if(isset($_GET['error'])): ?>
-
-<div style="
-background:#ffdede;
-color:#a10000;
-padding:10px;
-margin-top:10px;
-border-left:5px solid red;
-">
-
-<?= htmlspecialchars($_GET['error']) ?>
-
-</div>
-
-<?php endif; ?>
-
 </div>
 
 <div class="page-action">
@@ -40,8 +37,27 @@ border-left:5px solid red;
 
 </div>
 
-
 <div class="card">
+
+<form method="GET" class="filter-bar">
+
+<input type="text" name="customer" placeholder="Customer Name" value="<?= htmlspecialchars($customer) ?>">
+
+<select name="payment">
+
+<option value="">All Payment</option>
+
+<option value="GCash" <?= $payment=="GCash"?"selected":"" ?>>GCash</option>
+
+<option value="Cash on Delivery" <?= $payment=="Cash on Delivery"?"selected":"" ?>>Cash on Delivery</option>
+
+</select>
+
+<button class="btn-search">Filter</button>
+
+</form>
+
+<div class="table-wrap">
 
 <table>
 
@@ -64,7 +80,9 @@ border-left:5px solid red;
 
 <td><?= $row['id'] ?></td>
 
-<td><?= htmlspecialchars($row['customer_name']) ?></td>
+<td>
+<strong><?= htmlspecialchars($row['customer_name']) ?></strong>
+</td>
 
 <td>
 
@@ -73,14 +91,13 @@ border-left:5px solid red;
 $items = mysqli_query($conn,"
 SELECT pending_order_items.*, products.product_name
 FROM pending_order_items
-LEFT JOIN products 
-ON products.id = pending_order_items.product_id
+LEFT JOIN products ON products.id = pending_order_items.product_id
 WHERE pending_order_items.pending_order_id = ".$row['id']."
 ");
 
 while($item = mysqli_fetch_assoc($items)){
 
-echo htmlspecialchars($item['product_name']) . " (" . $item['quantity'] . ")<br>";
+echo htmlspecialchars($item['product_name'])." (".$item['quantity'].")<br>";
 
 }
 
@@ -117,6 +134,8 @@ Decline
 </tbody>
 
 </table>
+
+</div>
 
 </div>
 

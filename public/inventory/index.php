@@ -2,7 +2,27 @@
 require_once '../../includes/config.php';
 require_once '../../includes/auth.php';
 
-$result = mysqli_query($conn,"SELECT * FROM products ORDER BY id DESC");
+$product_name = $_GET['product_name'] ?? '';
+$category = $_GET['category'] ?? '';
+$brand = $_GET['brand'] ?? '';
+
+$sql = "SELECT * FROM products WHERE 1=1";
+
+if($product_name != ""){
+$sql .= " AND product_name LIKE '%$product_name%'";
+}
+
+if($category != ""){
+$sql .= " AND category LIKE '%$category%'";
+}
+
+if($brand != ""){
+$sql .= " AND brand LIKE '%$brand%'";
+}
+
+$sql .= " ORDER BY id DESC";
+
+$result = mysqli_query($conn,$sql);
 ?>
 
 <?php include '../../includes/header.php'; ?>
@@ -23,6 +43,18 @@ $result = mysqli_query($conn,"SELECT * FROM products ORDER BY id DESC");
 </div>
 
 <div class="card">
+
+<form method="GET" class="filter-bar">
+
+<input type="text" name="product_name" placeholder="Product Name" value="<?= htmlspecialchars($product_name) ?>">
+
+<input type="text" name="category" placeholder="Category" value="<?= htmlspecialchars($category) ?>">
+
+<input type="text" name="brand" placeholder="Brand" value="<?= htmlspecialchars($brand) ?>">
+
+<button class="btn-search">Filter</button>
+
+</form>
 
 <div class="table-wrap">
 
@@ -49,30 +81,42 @@ $result = mysqli_query($conn,"SELECT * FROM products ORDER BY id DESC");
 
 <tr>
 
-<td><?php echo $row['product_id']; ?></td>
-<td><?php echo $row['product_name']; ?></td>
-<td><?php echo $row['category']; ?></td>
-<td><?php echo $row['brand']; ?></td>
-<td><?php echo $row['model_number']; ?></td>
-<td><?php echo $row['quantity']; ?></td>
-<td><?php echo $row['unit']; ?></td>
-<td>₱<?php echo number_format($row['price'],2); ?></td>
-<td><?php echo $row['storage_location']; ?></td>
+<td><?= $row['product_id']; ?></td>
 
 <td>
+<strong><?= $row['product_name']; ?></strong>
+</td>
+
+<td><?= $row['category']; ?></td>
+
+<td><?= $row['brand']; ?></td>
+
+<td><?= $row['model_number']; ?></td>
+
+<td><?= $row['quantity']; ?></td>
+
+<td><?= $row['unit']; ?></td>
+
+<td>₱<?= number_format($row['price'],2); ?></td>
+
+<td><?= $row['storage_location']; ?></td>
+
+<td>
+
 <div class="actions">
 
 <a class="action-btn action-success"
-href="view.php?id=<?php echo $row['id']; ?>">
+href="view.php?id=<?= $row['id']; ?>">
 View
 </a>
 
 <a class="action-btn action-secondary"
-href="edit.php?id=<?php echo $row['id']; ?>">
+href="edit.php?id=<?= $row['id']; ?>">
 Edit
 </a>
 
 </div>
+
 </td>
 
 </tr>
@@ -84,7 +128,9 @@ Edit
 </table>
 
 </div>
+
 </div>
+
 </div>
 
 <?php include '../../includes/footer.php'; ?>

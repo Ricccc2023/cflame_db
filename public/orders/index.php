@@ -2,10 +2,25 @@
 require_once '../../includes/config.php';
 require_once '../../includes/auth.php';
 
-$sql = "SELECT orders.*, customers.customer_name
+$customer = $_GET['customer'] ?? '';
+$date = $_GET['date'] ?? '';
+
+$sql = "
+SELECT orders.*, customers.customer_name
 FROM orders
 LEFT JOIN customers ON orders.customer_id = customers.id
-ORDER BY orders.id DESC";
+WHERE 1=1
+";
+
+if($customer != ""){
+$sql .= " AND customers.customer_name LIKE '%$customer%'";
+}
+
+if($date != ""){
+$sql .= " AND orders.order_date = '$date'";
+}
+
+$sql .= " ORDER BY orders.id DESC";
 
 $result = mysqli_query($conn,$sql);
 ?>
@@ -27,8 +42,19 @@ $result = mysqli_query($conn,$sql);
 
 </div>
 
-
 <div class="card">
+
+<form method="GET" class="filter-bar">
+
+<input type="text" name="customer" placeholder="Customer Name" value="<?= htmlspecialchars($customer) ?>">
+
+<input type="date" name="date" value="<?= htmlspecialchars($date) ?>">
+
+<button class="btn-search">Filter</button>
+
+</form>
+
+<div class="table-wrap">
 
 <table>
 
@@ -52,7 +78,7 @@ $result = mysqli_query($conn,$sql);
 <td><?= $row['id'] ?></td>
 
 <td>
-<b><?= $row['invoice_no'] ?></b>
+<strong><?= $row['invoice_no'] ?></strong>
 </td>
 
 <td><?= $row['customer_name'] ?></td>
@@ -86,6 +112,8 @@ Print
 </tbody>
 
 </table>
+
+</div>
 
 </div>
 

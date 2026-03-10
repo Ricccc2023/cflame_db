@@ -7,10 +7,11 @@ if(isset($_POST['submit'])){
 $customer = $_POST['customer_name'];
 $contact = $_POST['contact'];
 $address = $_POST['address'];
+$payment = $_POST['mode_of_payment'];
 
 mysqli_query($conn,"
-INSERT INTO pending_orders(customer_name,contact,address)
-VALUES('$customer','$contact','$address')
+INSERT INTO pending_orders(customer_name,contact,address,mode_of_payment)
+VALUES('$customer','$contact','$address','$payment')
 ");
 
 $pending_id = mysqli_insert_id($conn);
@@ -47,7 +48,17 @@ $products = mysqli_query($conn,"SELECT * FROM products ORDER BY product_name ASC
 
 <div class="main">
 
+<div class="page-header">
+
+<div class="page-title">
 <h2>Create Pending Order</h2>
+</div>
+
+<div class="page-action">
+<a href="index.php" class="btn-decline">Back</a>
+</div>
+
+</div>
 
 <div class="card">
 
@@ -64,6 +75,18 @@ $products = mysqli_query($conn,"SELECT * FROM products ORDER BY product_name ASC
 
 <br><br>
 
+<label>Mode of Payment</label>
+
+<select name="mode_of_payment" required>
+
+<option value="">Select Payment</option>
+<option value="GCash">GCash</option>
+<option value="Cash on Delivery">Cash on Delivery</option>
+
+</select>
+
+<br><br>
+
 <label>Select Product</label>
 
 <select id="productSelect">
@@ -75,7 +98,9 @@ $products = mysqli_query($conn,"SELECT * FROM products ORDER BY product_name ASC
 <option value="<?= $p['id'] ?>"
 data-name="<?= $p['product_name'] ?>"
 data-price="<?= $p['price'] ?>">
+
 <?= $p['product_name'] ?> - ₱<?= number_format($p['price'],2) ?>
+
 </option>
 
 <?php endwhile; ?>
@@ -140,23 +165,35 @@ let table=document.getElementById("cart");
 let row=table.insertRow();
 
 row.innerHTML=`
-<td>${name}
+
+<td>
+
+${name}
+
 <input type="hidden" name="product_id[]" value="${id}">
+
 </td>
 
 <td>
+
 <input type="number" name="qty[]" value="1" min="1" class="qty">
+
 </td>
 
 <td>
+
 <input type="text" name="price[]" value="${price}" readonly>
+
 </td>
 
 <td class="subtotal">${price}</td>
 
 <td>
+
 <button type="button" onclick="removeItem(this,'${id}')">X</button>
+
 </td>
+
 `;
 
 calculate();
@@ -190,7 +227,7 @@ let sub=qty*price;
 
 row.querySelector(".subtotal").innerText=sub;
 
-total+=sub;
+total+=Number(sub);
 
 });
 
