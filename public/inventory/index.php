@@ -36,9 +36,11 @@ $result = mysqli_query($conn,$sql);
 <h2>Inventory Management</h2>
 </div>
 
-<div class="page-action">
-<a href="create.php" class="btn-add">+ Add Product</a>
-</div>
+<?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') { ?>
+    <div class="page-action">
+        <a href="create.php" class="btn-add">Add Product</a>
+    </div>
+<?php } ?>
 
 </div>
 

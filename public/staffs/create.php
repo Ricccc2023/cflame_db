@@ -33,7 +33,6 @@ if($result){
 
 <div class="page-title">
 <h2>Add User</h2>
-<p class="sub">Create new system user</p>
 </div>
 
 </div>

@@ -66,7 +66,6 @@ LIMIT 20
 
 <div class="page-title">
 <h2><?= htmlspecialchars($user['fullname']) ?></h2>
-<p class="sub">Staff Attendance Overview</p>
 </div>
 
 <div class="page-action">

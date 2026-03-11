@@ -33,8 +33,15 @@ exit;
 <div class="page-header">
 
 <div class="page-title">
-<h2>Edit User</h2>
-<p class="sub">Update system user</p>
+<h2>Edit User
+
+<div class="page-action">
+<a href="index.php" class="btn-decline">Back</a>
+</div>
+</h2>
+
+
+
 </div>
 
 </div>
