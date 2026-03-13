@@ -2,6 +2,58 @@
 require_once '../../includes/config.php';
 require_once '../../includes/auth.php';
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+/*
+|--------------------------------------------------------------------------
+| GENERATE CSRF TOKEN
+|--------------------------------------------------------------------------
+*/
+
+if(empty($_SESSION['csrf_token'])){
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+/*
+|--------------------------------------------------------------------------
+| HANDLE PAYMENT STATUS UPDATE (SECURE)
+|--------------------------------------------------------------------------
+*/
+
+if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_paid'])){
+
+    if(!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']){
+        die("Invalid CSRF Token");
+    }
+
+    $order_id = intval($_POST['order_id']);
+
+    $stmt = $conn->prepare("SELECT payment_status FROM orders WHERE id=?");
+    $stmt->bind_param("i",$order_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+
+    if($row && $row['payment_status'] === 'unpaid'){
+
+        $update = $conn->prepare("UPDATE orders SET payment_status='paid' WHERE id=?");
+        $update->bind_param("i",$order_id);
+        $update->execute();
+
+    }
+
+    header("Location: index.php");
+    exit;
+}
+
+/*
+|--------------------------------------------------------------------------
+| FILTER
+|--------------------------------------------------------------------------
+*/
+
 $customer = $_GET['customer'] ?? '';
 $date = $_GET['date'] ?? '';
 
@@ -13,11 +65,11 @@ WHERE 1=1
 ";
 
 if($customer != ""){
-$sql .= " AND customers.customer_name LIKE '%$customer%'";
+    $sql .= " AND customers.customer_name LIKE '%$customer%'";
 }
 
 if($date != ""){
-$sql .= " AND orders.order_date = '$date'";
+    $sql .= " AND orders.order_date = '$date'";
 }
 
 $sql .= " ORDER BY orders.id DESC";
@@ -65,6 +117,7 @@ $result = mysqli_query($conn,$sql);
 <th>Customer</th>
 <th>Date</th>
 <th>Total</th>
+<th>Payment</th>
 <th>Receipt</th>
 <th>Actions</th>
 </tr>
@@ -79,14 +132,54 @@ $result = mysqli_query($conn,$sql);
 <td><?= $row['id'] ?></td>
 
 <td>
-<strong><?= $row['invoice_no'] ?></strong>
+<strong><?= htmlspecialchars($row['invoice_no']) ?></strong>
 </td>
 
-<td><?= $row['customer_name'] ?></td>
+<td><?= htmlspecialchars($row['customer_name']) ?></td>
 
 <td><?= $row['order_date'] ?></td>
 
 <td>₱<?= number_format($row['total'],2) ?></td>
+
+<td>
+
+<form method="POST" style="display:inline;">
+
+<input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+<input type="hidden" name="order_id" value="<?= $row['id'] ?>">
+<input type="hidden" name="toggle_payment" value="1">
+
+<?php if($row['payment_status'] === 'paid'): ?>
+
+<button
+class="action-btn action-success"
+style="padding:4px 10px;font-size:12px;cursor:not-allowed;opacity:0.8;"
+disabled>
+Paid
+</button>
+
+<?php else: ?>
+
+<form method="POST" style="display:inline;">
+
+<input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+<input type="hidden" name="order_id" value="<?= $row['id'] ?>">
+<input type="hidden" name="mark_paid" value="1">
+
+<button
+type="submit"
+class="action-btn action-secondary"
+style="padding:4px 10px;font-size:12px;">
+Unpaid
+</button>
+
+</form>
+
+<?php endif; ?>
+
+</form>
+
+</td>
 
 <td>
 
@@ -97,7 +190,6 @@ class="action-btn action-secondary"
 style="padding:4px 10px;font-size:12px;"
 href="uploads/<?php echo $row['receipt_image']; ?>" target="_blank">
 View
-
 </a>
 
 <?php else: ?>
