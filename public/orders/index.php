@@ -65,6 +65,7 @@ $result = mysqli_query($conn,$sql);
 <th>Customer</th>
 <th>Date</th>
 <th>Total</th>
+<th>Receipt</th>
 <th>Actions</th>
 </tr>
 </thead>
@@ -86,6 +87,26 @@ $result = mysqli_query($conn,$sql);
 <td><?= $row['order_date'] ?></td>
 
 <td>₱<?= number_format($row['total'],2) ?></td>
+
+<td>
+
+<?php if(!empty($row['receipt_image'])): ?>
+
+<a
+class="action-btn action-secondary"
+style="padding:4px 10px;font-size:12px;"
+href="uploads/<?php echo $row['receipt_image']; ?>" target="_blank">
+View
+
+</a>
+
+<?php else: ?>
+
+<span style="color:#999;font-size:12px;">None</span>
+
+<?php endif; ?>
+
+</td>
 
 <td>
 

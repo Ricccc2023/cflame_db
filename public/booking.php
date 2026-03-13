@@ -1,6 +1,13 @@
 <?php
 require_once "../includes/config.php";
 
+$uploadDir = "pendings/uploads/";
+
+/* CREATE FOLDER IF NOT EXIST */
+if(!is_dir($uploadDir)){
+mkdir($uploadDir,0777,true);
+}
+
 if(isset($_POST['submit'])){
 
 $customer=$_POST['customer_name'];
@@ -8,18 +15,55 @@ $contact=$_POST['contact'];
 $address=$_POST['address'];
 $payment=$_POST['mode_of_payment'];
 
-mysqli_query($conn,"
-INSERT INTO pending_orders
-(customer_name,contact,address,mode_of_payment)
-VALUES
-('$customer','$contact','$address','$payment')
-");
+$receipt=NULL;
 
-$pending_id=mysqli_insert_id($conn);
+/* HANDLE RECEIPT */
+
+if($payment=="GCash" && !empty($_FILES['receipt']['name'])){
+
+$filename=time()."_".basename($_FILES['receipt']['name']);
+
+$targetPath=$uploadDir.$filename;
+
+move_uploaded_file($_FILES['receipt']['tmp_name'],$targetPath);
+
+$receipt=$filename;
+
+}
 
 $product=$_POST['product_id'];
 $qty=$_POST['qty'];
 $price=$_POST['price'];
+
+/* INVENTORY CHECK */
+
+for($i=0;$i<count($product);$i++){
+
+$pid=$product[$i];
+$q=$qty[$i];
+
+$check=mysqli_query($conn,"SELECT quantity FROM products WHERE id=$pid");
+$row=mysqli_fetch_assoc($check);
+
+if($q > $row['quantity']){
+
+$error="Quantity exceeds available stock.";
+break;
+
+}
+
+}
+
+if(!isset($error)){
+
+mysqli_query($conn,"
+INSERT INTO pending_orders
+(customer_name,contact,address,mode_of_payment,receipt_image)
+VALUES
+('$customer','$contact','$address','$payment','$receipt')
+");
+
+$pending_id=mysqli_insert_id($conn);
 
 for($i=0;$i<count($product);$i++){
 
@@ -42,6 +86,8 @@ $success=true;
 
 }
 
+}
+
 $products=mysqli_query($conn,"SELECT * FROM products ORDER BY product_name ASC");
 
 include "../includes/header.php";
@@ -51,13 +97,19 @@ include "../includes/header.php";
 
 <div style="display:flex;justify-content:center;margin-top:50px;gap:30px;">
 
-<!-- ORDER CARD -->
-
 <div class="card booking-card">
 
 <div class="form-header">
 <h2>Order Products</h2>
 </div>
+
+<?php if(isset($error)): ?>
+
+<div class="error-box">
+<?= $error ?>
+</div>
+
+<?php endif; ?>
 
 <?php if(isset($success)): ?>
 
@@ -67,7 +119,7 @@ Order submitted successfully. Please wait for confirmation.
 
 <?php endif; ?>
 
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
 
 <div class="form-row">
 <label>Customer Name</label>
@@ -87,13 +139,20 @@ Order submitted successfully. Please wait for confirmation.
 <div class="form-row">
 <label>Mode of Payment</label>
 
-<select name="mode_of_payment" required>
+<select name="mode_of_payment" id="payment" required>
 
 <option value="">Select Payment</option>
 <option value="GCash">GCash</option>
 <option value="Cash on Delivery">Cash on Delivery</option>
 
 </select>
+
+</div>
+
+<div class="form-row" id="receiptField" style="display:none;">
+
+<label>Upload GCash Receipt</label>
+<input type="file" name="receipt">
 
 </div>
 
@@ -108,7 +167,8 @@ Order submitted successfully. Please wait for confirmation.
 
 <option value="<?= $p['id'] ?>"
 data-name="<?= $p['product_name'] ?>"
-data-price="<?= $p['price'] ?>">
+data-price="<?= $p['price'] ?>"
+data-stock="<?= $p['quantity'] ?>">
 
 <?= $p['product_name'] ?> - ₱<?= number_format($p['price'],2) ?>
 
@@ -148,37 +208,6 @@ Submit Order
 
 </div>
 
-
-<!-- INSTRUCTIONS -->
-
-<div class="card" style="width:320px;height:fit-content;">
-
-<h3>How to Order</h3>
-
-<ol style="margin-top:10px;padding-left:18px;font-size:14px;line-height:1.6;">
-
-<li>Enter your name and contact information.</li>
-
-<li>Select your preferred mode of payment.</li>
-
-<li>Choose products from the dropdown.</li>
-
-<li>Adjust quantity if needed.</li>
-
-<li>Click <b>Submit Order</b>.</li>
-
-<li>Wait for admin confirmation.</li>
-<ul>Note:</ul>
-<UL style="list-style-type:square;">
-
-        <li>THE CONTACT NUMBER YOU ENTERED WILL BE INDICATED IF YOUR ORDER IS CONFIRMED OR DECLINED.</li>
-
-
-</ul>
-</ol>
-
-</div>
-
 </div>
 
 </div>
@@ -187,6 +216,16 @@ Submit Order
 
 let cartProducts=[];
 
+document.getElementById("payment").addEventListener("change",function(){
+
+if(this.value=="GCash"){
+document.getElementById("receiptField").style.display="block";
+}else{
+document.getElementById("receiptField").style.display="none";
+}
+
+});
+
 document.getElementById("productSelect").addEventListener("change",function(){
 
 let option=this.selectedOptions[0];
@@ -194,6 +233,7 @@ let option=this.selectedOptions[0];
 let id=option.value;
 let name=option.dataset.name;
 let price=option.dataset.price;
+let stock=option.dataset.stock;
 
 if(!id) return;
 
@@ -215,6 +255,7 @@ row.innerHTML=`
 ${name}
 
 <input type="hidden" name="product_id[]" value="${id}">
+<input type="hidden" class="stock" value="${stock}">
 
 </td>
 
@@ -247,6 +288,18 @@ calculate();
 document.addEventListener("input",function(e){
 
 if(e.target.classList.contains("qty")){
+
+let row=e.target.closest("tr");
+
+let stock=row.querySelector(".stock").value;
+
+if(Number(e.target.value) > Number(stock)){
+
+alert("Not enough stock available");
+
+e.target.value=stock;
+
+}
 
 calculate();
 

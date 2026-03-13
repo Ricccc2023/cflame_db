@@ -17,6 +17,29 @@ exit;
 }
 
 /* ===============================
+MOVE RECEIPT IMAGE
+=============================== */
+
+$receipt = $pending['receipt_image'];
+
+if($receipt){
+
+$source = "uploads/".$receipt;                 // pendings/uploads
+$destination = "../orders/uploads/".$receipt;  // orders/uploads
+
+if(file_exists($source)){
+
+if(!is_dir("../orders/uploads")){
+mkdir("../orders/uploads",0777,true);
+}
+
+rename($source,$destination);
+
+}
+
+}
+
+/* ===============================
 GET ITEMS + STOCK
 =============================== */
 
@@ -59,7 +82,6 @@ exit;
 
 /* ===============================
 CUSTOMER DETECTION
-NO DUPLICATE
 =============================== */
 
 $name = trim($pending['customer_name']);
@@ -71,10 +93,7 @@ $contact = mysqli_real_escape_string($conn,$contact);
 $address = mysqli_real_escape_string($conn,$address);
 
 
-/*
-CHECK EXISTING CUSTOMER
-MATCH BY NAME OR CONTACT
-*/
+/* CHECK EXISTING CUSTOMER */
 
 $check = mysqli_query($conn,"
 SELECT * FROM customers
@@ -88,8 +107,6 @@ if(mysqli_num_rows($check)>0){
 $customer=mysqli_fetch_assoc($check);
 $customer_id=$customer['id'];
 
-/* OPTIONAL UPDATE ADDRESS */
-
 mysqli_query($conn,"
 UPDATE customers
 SET address='$address'
@@ -97,8 +114,6 @@ WHERE id=$customer_id
 ");
 
 }else{
-
-/* CREATE NEW CUSTOMER */
 
 mysqli_query($conn,"
 INSERT INTO customers(customer_name,contact,address)
@@ -115,12 +130,13 @@ CREATE ORDER
 =============================== */
 
 mysqli_query($conn,"
-INSERT INTO orders(customer_id,order_date,total,mode_of_payment)
+INSERT INTO orders(customer_id,order_date,total,mode_of_payment,receipt_image)
 VALUES(
 $customer_id,
 CURDATE(),
 0,
-'".$pending['mode_of_payment']."'
+'".$pending['mode_of_payment']."',
+'$receipt'
 )
 ");
 
@@ -128,7 +144,7 @@ $order_id=mysqli_insert_id($conn);
 
 
 /* ===============================
-GENERATE INVOICE NUMBER
+GENERATE INVOICE
 =============================== */
 
 $invoice = "INV-".date("Ymd")."-".$order_id;
@@ -160,7 +176,6 @@ $subtotal=$row['subtotal'];
 
 $total += $subtotal;
 
-
 /* INSERT ORDER ITEM */
 
 mysqli_query($conn,"
@@ -168,8 +183,7 @@ INSERT INTO order_items(order_id,product_id,quantity,price,subtotal)
 VALUES($order_id,$pid,$qty,$price,$subtotal)
 ");
 
-
-/* UPDATE PRODUCT STOCK */
+/* UPDATE STOCK */
 
 mysqli_query($conn,"
 UPDATE products
@@ -181,7 +195,7 @@ WHERE id = $pid
 
 
 /* ===============================
-UPDATE ORDER TOTAL
+UPDATE TOTAL
 =============================== */
 
 mysqli_query($conn,"

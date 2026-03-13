@@ -63,6 +63,7 @@ $result = mysqli_query($conn,$sql);
 
 <thead>
 <tr>
+<th>Receipt</th>
 <th>ID</th>
 <th>Customer</th>
 <th>Products</th>
@@ -77,6 +78,28 @@ $result = mysqli_query($conn,$sql);
 <?php while($row = mysqli_fetch_assoc($result)): ?>
 
 <tr>
+
+<td>
+
+<?php if(!empty($row['receipt_image'])): ?>
+
+<a
+class="action-btn action-secondary"
+style="padding:4px 10px;font-size:12px;"
+href="uploads/<?php echo $row['receipt_image']; ?>"
+target="_blank">
+
+View
+
+</a>
+
+<?php else: ?>
+
+<span style="color:#999;font-size:12px;">None</span>
+
+<?php endif; ?>
+
+</td>
 
 <td><?= $row['id'] ?></td>
 

@@ -5,26 +5,77 @@ require_once '../../includes/auth.php';
 $order_id = $_GET['order'] ?? null;
 $error = "";
 
-/* CREATE ORDER FIRST */
+/* ===============================
+UPLOAD FOLDER
+=============================== */
+
+$uploadDir = "uploads/";
+
+if(!is_dir($uploadDir)){
+mkdir($uploadDir,0777,true);
+}
+
+/* ===============================
+CREATE ORDER
+=============================== */
 
 if(isset($_POST['start_order'])){
 
 $customer = $_POST['customer'];
 $date = $_POST['date'];
+$payment = $_POST['mode_of_payment'];
+
+$receipt = NULL;
+
+/* UPLOAD RECEIPT */
+
+$uploadDir = "uploads/";
+
+if(!is_dir($uploadDir)){
+mkdir($uploadDir,0777,true);
+}
+
+if($payment=="GCash" && !empty($_FILES['receipt']['name'])){
+
+$filename = time().'_'.basename($_FILES['receipt']['name']);
+
+$targetPath = $uploadDir.$filename;
+
+if(move_uploaded_file($_FILES['receipt']['tmp_name'],$targetPath)){
+$receipt = $filename;
+}
+
+}
+
+/* ===============================
+INSERT ORDER
+=============================== */
 
 mysqli_query($conn,"
-INSERT INTO orders (customer_id,order_date,total)
-VALUES ('$customer','$date',0)
+INSERT INTO orders (customer_id,order_date,total,mode_of_payment,receipt_image)
+VALUES ('$customer','$date',0,'$payment','$receipt')
 ");
 
 $order_id = mysqli_insert_id($conn);
 
+/* GENERATE INVOICE */
+
+$invoice_no = "INV-".date("Ymd")."-".$order_id;
+
+mysqli_query($conn,"
+UPDATE orders
+SET invoice_no='$invoice_no'
+WHERE id=$order_id
+");
+
 header("Location:create.php?order=".$order_id);
 exit;
+
 }
 
-
-/* ADD PRODUCT */
+/* ===============================
+ADD PRODUCT
+=============================== */
 
 if(isset($_POST['add_product'])){
 
@@ -52,7 +103,7 @@ VALUES
 ('$order_id','$product_id','$qty','$price','$subtotal')
 ");
 
-/* UPDATE INVENTORY */
+/* UPDATE STOCK */
 
 mysqli_query($conn,"
 UPDATE products
@@ -67,8 +118,9 @@ exit;
 
 }
 
-
-/* CONFIRM ORDER */
+/* ===============================
+CONFIRM ORDER
+=============================== */
 
 if(isset($_POST['confirm_order'])){
 
@@ -91,7 +143,6 @@ exit;
 
 }
 
-
 $customers = mysqli_query($conn,"SELECT * FROM customers");
 $products = mysqli_query($conn,"SELECT * FROM products WHERE quantity > 0");
 
@@ -101,7 +152,6 @@ $products = mysqli_query($conn,"SELECT * FROM products WHERE quantity > 0");
 <?php include '../../includes/sidebar.php'; ?>
 
 <div class="main">
-
 
 <div class="page-header">
 
@@ -119,7 +169,7 @@ $products = mysqli_query($conn,"SELECT * FROM products WHERE quantity > 0");
 
 <h2>Create Order</h2>
 
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
 
 <div class="form-row">
 <label>Customer</label>
@@ -141,6 +191,26 @@ $products = mysqli_query($conn,"SELECT * FROM products WHERE quantity > 0");
 <div class="form-row">
 <label>Order Date</label>
 <input type="date" name="date" required>
+</div>
+
+<div class="form-row">
+<label>Mode of Payment</label>
+
+<select name="mode_of_payment" id="payment" required>
+
+<option value="">Select Payment</option>
+<option value="GCash">GCash</option>
+<option value="Cash on Delivery">Cash on Delivery</option>
+
+</select>
+
+</div>
+
+<div class="form-row" id="receiptField" style="display:none;">
+
+<label>Upload GCash Receipt</label>
+<input type="file" name="receipt" accept="image/*">
+
 </div>
 
 <button class="btn-save" name="start_order">
@@ -202,7 +272,6 @@ Add Product
 </form>
 
 </div>
-
 
 <!-- ORDER ITEMS -->
 
@@ -272,7 +341,20 @@ Confirm Order
 
 <?php endif; ?>
 
-
 </div>
+
+<script>
+
+document.getElementById("payment").addEventListener("change",function(){
+
+if(this.value=="GCash"){
+document.getElementById("receiptField").style.display="block";
+}else{
+document.getElementById("receiptField").style.display="none";
+}
+
+});
+
+</script>
 
 <?php include '../../includes/footer.php'; ?>
