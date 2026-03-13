@@ -19,6 +19,12 @@ Users
 </a>
 <?php endif; ?>
 
+<?php if($role === 'admin'): ?>
+<a href="<?= BASE_URL ?>/payroll/index.php">
+Payroll
+</a>
+<?php endif; ?>
+
 <a href="<?= BASE_URL ?>/customers/index.php">
 Customers
 </a> 

@@ -1,6 +1,8 @@
 <?php
 require_once "../../includes/config.php";
 
+/* GET USER */
+
 $id = intval($_GET['id']);
 
 $user = mysqli_fetch_assoc(mysqli_query($conn,"
@@ -9,11 +11,19 @@ FROM users
 WHERE id=$id
 "));
 
-$month = date("m");
-$year = date("Y");
+if(!$user){
+exit("User not found");
+}
+
+/* FILTER */
+
+$month = $_GET['month'] ?? date("m");
+$year  = $_GET['year'] ?? date("Y");
+
+/* ATTENDANCE */
 
 $q = mysqli_query($conn,"
-SELECT *
+SELECT DATE(time) as day
 FROM attendance
 WHERE user_id=$id
 AND type='IN'
@@ -23,34 +33,150 @@ AND YEAR(time)='$year'
 
 $daysWorked = mysqli_num_rows($q);
 
-$salary = $daysWorked * $user['per_day'];
+/* PAYROLL */
+
+$perDay = $user['per_day'];
+$grossPay = $perDay * $daysWorked;
+
+/* OPTIONAL DEDUCTION */
+
+$deduction = $_GET['deduction'] ?? 0;
+
+$netPay = $grossPay - $deduction;
+
+$periodLabel = date("F",mktime(0,0,0,$month,1))." ".$year;
+
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
 
+<meta charset="UTF-8">
+
 <title>Payslip</title>
 
 <style>
 
 body{
-font-family:Arial;
+font-family:Arial, sans-serif;
+background:#fff;
 }
 
 .wrapper{
-width:500px;
-margin:auto;
+width:520px;
+margin:20px auto;
 border:1px solid #000;
 padding:20px;
 }
 
-h2{
+.header{
+display:flex;
+align-items:center;
+border-bottom:1px solid #000;
+padding-bottom:10px;
+margin-bottom:15px;
+}
+
+.logo{
+width:60px;
+height:60px;
+margin-right:15px;
+}
+
+.logo img{
+width:100%;
+height:100%;
+object-fit:contain;
+}
+
+.company-info{
+font-size:13px;
+}
+
+.company-info h2{
+margin:0;
+font-size:16px;
+}
+
+.payslip-title{
 text-align:center;
+font-weight:bold;
+margin:15px 0;
+font-size:14px;
+}
+
+.section{
+margin-bottom:15px;
+}
+
+.section-title{
+font-weight:bold;
+border-bottom:1px solid #000;
+font-size:12px;
+padding-bottom:4px;
+margin-bottom:6px;
 }
 
 table{
 width:100%;
+border-collapse:collapse;
+font-size:12px;
+}
+
+td{
+padding:4px 0;
+}
+
+.right{
+text-align:right;
+}
+
+.net{
+font-size:14px;
+font-weight:bold;
+border-top:2px solid #000;
+padding-top:6px;
+}
+
+.footer{
+margin-top:30px;
+font-size:12px;
+}
+
+.signature{
+margin-top:40px;
+}
+
+.print-btn{
+text-align:center;
+margin-bottom:15px;
+}
+
+.print-green{
+background:#198754;
+color:#fff;
+border:none;
+padding:8px 16px;
+cursor:pointer;
+font-size:13px;
+font-weight:600;
+}
+
+.print-green:hover{
+background:#157347;
+}
+
+@media print{
+
+.print-btn{
+display:none;
+}
+
+body{
+margin:0;
+}
+
 }
 
 </style>
@@ -59,48 +185,136 @@ width:100%;
 
 <body>
 
+<div class="print-btn">
+
+<button onclick="window.print()" class="print-green">
+🖨 Print Payslip
+</button>
+
+</div>
+
 <div class="wrapper">
 
-<h2>Payslip</h2>
+<div class="header">
+
+<div class="logo">
+<img src="image.png" alt="Company Logo">
+</div>
+
+<div class="company-info">
+
+<h2>C'FLAME FIRE PROTECTION EQUIPMENT</h2>
+
+<div>MPJR BLDG General Malvar Ave, Poblacion 4,</div>
+<div>Santo Tomas, Philippines, 4234</div>
+
+<div>Contact: <strong>09854002367</strong></div>
+
+</div>
+
+</div>
+
+<div class="payslip-title">
+PAYSLIP
+</div>
+
+
+<div class="section">
 
 <table>
 
 <tr>
-<td>Name</td>
-<td><?= $user['fullname'] ?></td>
+<td><b>Employee:</b></td>
+<td><strong><?= htmlspecialchars($user['fullname']) ?></strong></td>
 </tr>
 
 <tr>
-<td>Month</td>
-<td><?= date("F Y") ?></td>
+<td><b>Period:</b></td>
+<td><?= $periodLabel ?></td>
 </tr>
 
 <tr>
-<td>Per Day</td>
-<td>₱<?= number_format($user['per_day'],2) ?></td>
-</tr>
-
-<tr>
-<td>Days Worked</td>
-<td><?= $daysWorked ?></td>
-</tr>
-
-<tr>
-<td><strong>Total Salary</strong></td>
-<td>
-<strong>
-₱<?= number_format($salary,2) ?>
-</strong>
-</td>
+<td><b>Date Generated:</b></td>
+<td><?= date("M d, Y") ?></td>
 </tr>
 
 </table>
 
 </div>
 
-<script>
-window.print();
-</script>
+
+<div class="section">
+
+<div class="section-title">
+EARNINGS
+</div>
+
+<table>
+
+<tr>
+<td>Per Day Salary</td>
+<td class="right">₱<?= number_format($perDay,2) ?></td>
+</tr>
+
+<tr>
+<td>Days Worked</td>
+<td class="right"><?= $daysWorked ?></td>
+</tr>
+
+<tr>
+<td>Gross Pay</td>
+<td class="right">₱<?= number_format($grossPay,2) ?></td>
+</tr>
+
+</table>
+
+</div>
+
+
+<div class="section">
+
+<div class="section-title">
+DEDUCTIONS
+</div>
+
+<table>
+
+<tr>
+<td>Manual Deduction</td>
+<td class="right">₱<?= number_format($deduction,2) ?></td>
+</tr>
+
+</table>
+
+</div>
+
+
+<div class="section">
+
+<table>
+
+<tr class="net">
+<td>NET PAY</td>
+<td class="right">₱<?= number_format($netPay,2) ?></td>
+</tr>
+
+</table>
+
+</div>
+
+
+<div class="footer">
+
+<div class="signature">
+
+___________________________ <br>
+Employee Signature
+
+</div>
+
+</div>
+
+</div>
 
 </body>
 </html>
