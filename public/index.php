@@ -69,7 +69,7 @@ session_start();
 
         .action-btn {
             display: inline-block;
-            background: #1f4e46;
+            background: #991e1e;
             color: white;
             padding: 12px 25px;
             border-radius: 6px;
@@ -103,7 +103,7 @@ session_start();
     <div class="booking-card">
 
         <div style="margin-bottom:20px;">
-            <img src="logo.png" alt="Clinic Logo" style="width:90px; border-radius:15px;">
+            <img src="image.png" alt="Clinic Logo" style="width:90px; border-radius:15px;">
         </div>
 
         <h1 style="font-size:34px; margin-bottom:10px; color:#1f4e46;">
