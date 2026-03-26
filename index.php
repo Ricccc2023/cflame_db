@@ -69,7 +69,7 @@ session_start();
 
         .action-btn {
             display: inline-block;
-            background: #991e1e;
+            background: #bb4747;
             color: white;
             padding: 12px 25px;
             border-radius: 6px;

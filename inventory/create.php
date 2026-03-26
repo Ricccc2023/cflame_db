@@ -1,6 +1,6 @@
 <?php
-require_once '../../includes/config.php';
-require_once '../../includes/auth.php';
+require_once '/../includes/config.php';
+require_once '/../includes/auth.php';
 
 if($_SERVER['REQUEST_METHOD']=="POST"){
 
@@ -31,8 +31,8 @@ exit;
 }
 ?>
 
-<?php include '../../includes/header.php'; ?>
-<?php include '../../includes/sidebar.php'; ?>
+<?php include '/../includes/header.php'; ?>
+<?php include '/../includes/sidebar.php'; ?>
 
 <div class="main">
 <div class="page-header">
