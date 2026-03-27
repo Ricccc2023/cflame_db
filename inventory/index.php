@@ -1,6 +1,6 @@
 <?php
-require_once '../../includes/config.php';
-require_once '../../includes/auth.php';
+require_once '../includes/config.php';
+require_once '../includes/auth.php';
 
 $product_name = $_GET['product_name'] ?? '';
 $category = $_GET['category'] ?? '';
@@ -25,8 +25,8 @@ $sql .= " ORDER BY id DESC";
 $result = mysqli_query($conn,$sql);
 ?>
 
-<?php include '../../includes/header.php'; ?>
-<?php include '../../includes/sidebar.php'; ?>
+<?php include '../includes/header.php'; ?>
+<?php include '../includes/sidebar.php'; ?>
 
 <div class="main">
 
@@ -135,4 +135,4 @@ Edit
 
 </div>
 
-<?php include '../../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

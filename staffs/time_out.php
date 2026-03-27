@@ -1,6 +1,6 @@
 <?php
-include "../../includes/auth.php";
-include "../../includes/config.php";
+include "../includes/auth.php";
+include "../includes/config.php";
 
 $id = intval($_GET['id']);
 

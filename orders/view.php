@@ -1,6 +1,6 @@
 <?php
-require_once '../../includes/config.php';
-require_once '../../includes/auth.php';
+require_once '../includes/config.php';
+require_once '../includes/auth.php';
 
 $id = intval($_GET['id']);
 
@@ -19,8 +19,8 @@ WHERE order_items.order_id = $id
 ");
 ?>
 
-<?php include '../../includes/header.php'; ?>
-<?php include '../../includes/sidebar.php'; ?>
+<?php include '../includes/header.php'; ?>
+<?php include '../includes/sidebar.php'; ?>
 
 <div class="main">
 
@@ -105,4 +105,4 @@ Total: ₱<?= number_format($order['total'],2) ?>
 </div>
 </div>
 
-<?php include '../../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

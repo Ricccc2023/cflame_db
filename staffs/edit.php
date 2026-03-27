@@ -1,8 +1,8 @@
 <?php
-include "../../includes/auth.php";
-include "../../includes/config.php";
-include "../../includes/header.php";
-include "../../includes/sidebar.php";
+include "../includes/auth.php";
+include "../includes/config.php";
+include "../includes/header.php";
+include "../includes/sidebar.php";
 
 $id = intval($_GET['id']);
 
@@ -90,4 +90,4 @@ exit;
 
 </div>
 
-<?php include "../../includes/footer.php"; ?>
+<?php include "../includes/footer.php"; ?>

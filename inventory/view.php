@@ -1,14 +1,14 @@
 <?php
-require_once '../../includes/config.php';
-require_once '../../includes/auth.php';
+require_once '../includes/config.php';
+require_once '../includes/auth.php';
 
 $id = $_GET['id'];
 
 $product = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM products WHERE id=$id"));
 ?>
 
-<?php include '../../includes/header.php'; ?>
-<?php include '../../includes/sidebar.php'; ?>
+<?php include '../includes/header.php'; ?>
+<?php include '../includes/sidebar.php'; ?>
 
 <div class="main">
 <div class="page-header">
@@ -94,4 +94,4 @@ $product = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM products WHERE i
 </div>
 </div>
 
-<?php include '../../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

@@ -1,8 +1,8 @@
 <?php
-include "../../includes/auth.php";
-include "../../includes/config.php";
-include "../../includes/header.php";
-include "../../includes/sidebar.php";
+include "../includes/auth.php";
+include "../includes/config.php";
+include "../includes/header.php";
+include "../includes/sidebar.php";
 
 $q = mysqli_query($conn,"SELECT * FROM archive_users ORDER BY archived_at DESC");
 ?>
@@ -59,4 +59,4 @@ $q = mysqli_query($conn,"SELECT * FROM archive_users ORDER BY archived_at DESC")
 
 </div>
 
-<?php include "../../includes/footer.php"; ?>
+<?php include "../includes/footer.php"; ?>

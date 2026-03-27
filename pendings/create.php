@@ -1,6 +1,6 @@
 <?php
-require_once '../../includes/config.php';
-require_once '../../includes/auth.php';
+require_once '../includes/config.php';
+require_once '../includes/auth.php';
 
 $error="";
 $success="";
@@ -125,8 +125,8 @@ $products=mysqli_query($conn,"SELECT * FROM products ORDER BY product_name ASC")
 
 ?>
 
-<?php include '../../includes/header.php'; ?>
-<?php include '../../includes/sidebar.php'; ?>
+<?php include '../includes/header.php'; ?>
+<?php include '../includes/sidebar.php'; ?>
 
 <div class="main">
 
@@ -369,4 +369,4 @@ calculate();
 
 </script>
 
-<?php include '../../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

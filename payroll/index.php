@@ -1,6 +1,6 @@
 <?php
-require_once "../../includes/config.php";
-require_once "../../includes/auth.php";
+require_once "../includes/config.php";
+require_once "../includes/auth.php";
 
 /* ADMIN SECURITY */
 
@@ -36,8 +36,8 @@ WHERE role='staff'
 ORDER BY fullname ASC
 ");
 
-include "../../includes/header.php";
-include "../../includes/sidebar.php";
+include "../includes/header.php";
+include "../includes/sidebar.php";
 ?>
 
 <div class="main">
@@ -131,4 +131,4 @@ Print
 
 </div>
 
-<?php include "../../includes/footer.php"; ?>
+<?php include "../includes/footer.php"; ?>

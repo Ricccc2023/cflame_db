@@ -1,5 +1,5 @@
 <?php
-define('BASE_URL', '/cflame_db/public');
+define('BASE_URL', '/cflame_db');
 
 $role = $_SESSION['role'] ?? '';
 ?>

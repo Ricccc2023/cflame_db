@@ -1,6 +1,6 @@
 <?php
-require_once '/../includes/config.php';
-require_once '/../includes/auth.php';
+require_once '../includes/config.php';
+require_once '../includes/auth.php';
 
 if($_SERVER['REQUEST_METHOD']=="POST"){
 
@@ -17,7 +17,7 @@ $status = $_POST['status'];
 $date_purchased = $_POST['date_purchased'];
 $last_inspection = $_POST['last_inspection'];
 $next_inspection = $_POST['next_inspection'];
-
+//
 $sql = "INSERT INTO products
 (product_id,product_name,category,brand,model_number,quantity,price,unit,storage_location,status,date_purchased,last_inspection_date,next_inspection_date)
 
@@ -31,8 +31,8 @@ exit;
 }
 ?>
 
-<?php include '/../includes/header.php'; ?>
-<?php include '/../includes/sidebar.php'; ?>
+<?php include '../includes/header.php'; ?>
+<?php include '../includes/sidebar.php'; ?>
 
 <div class="main">
 <div class="page-header">
@@ -123,4 +123,4 @@ exit;
 </div>
 </div>
 
-<?php include '../../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

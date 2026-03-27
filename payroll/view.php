@@ -1,6 +1,6 @@
 <?php
-require_once "../../includes/config.php";
-require_once "../../includes/auth.php";
+require_once "../includes/config.php";
+require_once "../includes/auth.php";
 
 /* GET USER */
 
@@ -53,8 +53,8 @@ $daysInMonth = cal_days_in_month(CAL_GREGORIAN,$month,$year);
 $firstDay = date('w', strtotime("$year-$month-01"));
 $monthName = date("F", mktime(0,0,0,$month,1));
 
-include "../../includes/header.php";
-include "../../includes/sidebar.php";
+include "../includes/header.php";
+include "../includes/sidebar.php";
 ?>
 
 <div class="main">
@@ -237,4 +237,4 @@ echo "</tr><tr>";
 
 </div>
 
-<?php include "../../includes/footer.php"; ?>
+<?php include "../includes/footer.php"; ?>

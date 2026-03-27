@@ -1,6 +1,6 @@
 <?php
-require_once "/includes/config.php";
-require_once "/includes/auth.php";
+require_once "includes/config.php";
+require_once "includes/auth.php";
 
 date_default_timezone_set("Asia/Manila");
 
@@ -119,8 +119,8 @@ $product_data[] = $row['qty'];
 
 ?>
 
-<?php include "../includes/header.php"; ?>
-<?php include "../includes/sidebar.php"; ?>
+<?php include "includes/header.php"; ?>
+<?php include "includes/sidebar.php"; ?>
 
 <div class="main">
 
@@ -305,4 +305,4 @@ grid-column: span 1;
 
 </style>
 
-<?php include "/includes/footer.php"; ?>
+<?php include "includes/footer.php"; ?>

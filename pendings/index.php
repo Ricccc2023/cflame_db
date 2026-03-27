@@ -1,6 +1,6 @@
 <?php
-require_once '../../includes/config.php';
-require_once '../../includes/auth.php';
+require_once '../includes/config.php';
+require_once '../includes/auth.php';
 
 $customer = $_GET['customer'] ?? '';
 $payment = $_GET['payment'] ?? '';
@@ -20,8 +20,8 @@ $sql .= " ORDER BY id DESC";
 $result = mysqli_query($conn,$sql);
 ?>
 
-<?php include '../../includes/header.php'; ?>
-<?php include '../../includes/sidebar.php'; ?>
+<?php include '../includes/header.php'; ?>
+<?php include '../includes/sidebar.php'; ?>
 
 <div class="main">
 
@@ -33,6 +33,7 @@ $result = mysqli_query($conn,$sql);
 
 <div class="page-action">
 <a href="create.php" class="btn-add">+ Create Pending</a>
+<a href="declined_archive.php" class="action-btn action-success">Archive</a>
 </div>
 
 </div>
@@ -164,4 +165,4 @@ Decline
 
 </div>
 
-<?php include '../../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

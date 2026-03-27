@@ -1,8 +1,8 @@
 <?php
-include "../../includes/auth.php";
-include "../../includes/config.php";
-include "../../includes/header.php";
-include "../../includes/sidebar.php";
+include "../includes/auth.php";
+include "../includes/config.php";
+include "../includes/header.php";
+include "../includes/sidebar.php";
 
 $search_name = $_GET['customer_name'] ?? '';
 $search_contact = $_GET['contact'] ?? '';
@@ -109,4 +109,4 @@ $q = mysqli_query($conn,$sql);
 
 </div>
 
-<?php include "../../includes/footer.php"; ?>
+<?php include "../includes/footer.php"; ?>

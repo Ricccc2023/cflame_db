@@ -1,6 +1,6 @@
 <?php
-require_once '../../includes/config.php';
-require_once '../../includes/auth.php';
+require_once '../includes/config.php';
+require_once '../includes/auth.php';
 
 $order_id = $_GET['order'] ?? null;
 $error = "";
@@ -148,8 +148,8 @@ $products = mysqli_query($conn,"SELECT * FROM products WHERE quantity > 0");
 
 ?>
 
-<?php include '../../includes/header.php'; ?>
-<?php include '../../includes/sidebar.php'; ?>
+<?php include '../includes/header.php'; ?>
+<?php include '../includes/sidebar.php'; ?>
 
 <div class="main">
 
@@ -357,4 +357,4 @@ document.getElementById("receiptField").style.display="none";
 
 </script>
 
-<?php include '../../includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

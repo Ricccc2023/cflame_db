@@ -1,5 +1,5 @@
 <?php
-require_once "../includes/config.php";
+require_once "includes/config.php";
 
 $uploadDir = "pendings/uploads/";
 
@@ -90,7 +90,7 @@ $success=true;
 
 $products=mysqli_query($conn,"SELECT * FROM products ORDER BY product_name ASC");
 
-include "../includes/header.php";
+include "includes/header.php";
 ?>
 
 <div class="main">

@@ -1,6 +1,6 @@
 <?php
-include "../../includes/auth.php";
-include "../../includes/config.php";
+include "../includes/auth.php";
+include "../includes/config.php";
 
 /* ADMIN SECURITY - BLOCK STAFF ACCESS */
 if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin'){
@@ -35,8 +35,8 @@ $sql .= " ORDER BY id DESC";
 
 $q = mysqli_query($conn,$sql);
 
-include "../../includes/header.php";
-include "../../includes/sidebar.php";
+include "../includes/header.php";
+include "../includes/sidebar.php";
 ?>
 
 <div class="main">
@@ -49,7 +49,7 @@ include "../../includes/sidebar.php";
 
 <div class="page-action">
 <a href="create.php" class="btn-add">+ Add User</a>
-<a href="archive.php" class="archive">Archive</a>
+<a href="archive.php" class="action-btn action-success">Archive</a>
 </div>
 
 </div>
@@ -208,4 +208,4 @@ onclick="return confirm('Delete this user?')">Delete</a>
 
 </div>
 
-<?php include "../../includes/footer.php"; ?>
+<?php include "../includes/footer.php"; ?>

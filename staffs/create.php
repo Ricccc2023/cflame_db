@@ -1,8 +1,8 @@
 <?php
-include "../../includes/auth.php";
-include "../../includes/config.php";
-include "../../includes/header.php";
-include "../../includes/sidebar.php";
+include "../includes/auth.php";
+include "../includes/config.php";
+include "../includes/header.php";
+include "../includes/sidebar.php";
 
 if(isset($_POST['save'])){
 
@@ -76,4 +76,4 @@ if($result){
 
 </div>
 
-<?php include "../../includes/footer.php"; ?>
+<?php include "../includes/footer.php"; ?>
