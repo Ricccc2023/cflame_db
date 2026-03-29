@@ -4,15 +4,25 @@ require_once '../includes/auth.php';
 
 $id = intval($_GET['id']);
 
+/* GET ORDER + CUSTOMER + ADDRESS */
+
 $order = mysqli_fetch_assoc(mysqli_query($conn,"
-SELECT orders.*, customers.customer_name
+SELECT 
+    orders.*,
+    customers.customer_name,
+    customers.contact,
+    customers.address
 FROM orders
 LEFT JOIN customers ON customers.id = orders.customer_id
 WHERE orders.id = $id
 "));
 
+/* GET ITEMS */
+
 $items = mysqli_query($conn,"
-SELECT order_items.*, products.product_name
+SELECT 
+    order_items.*,
+    products.product_name
 FROM order_items
 LEFT JOIN products ON products.id = order_items.product_id
 WHERE order_items.order_id = $id
@@ -36,7 +46,6 @@ WHERE order_items.order_id = $id
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
 
-
 <h2>Order #<?= $order['id'] ?></h2>
 
 <a href="print.php?id=<?= $order['id'] ?>" target="_blank">
@@ -55,6 +64,8 @@ Print Receipt
 </div>
 
 <p><b>Customer:</b> <?= $order['customer_name'] ?></p>
+<p><b>Contact:</b> <?= $order['contact'] ?></p>
+<p><b>Address:</b> <?= $order['address'] ?></p>
 <p><b>Date:</b> <?= $order['order_date'] ?></p>
 
 <table style="width:100%;border-collapse:collapse;margin-top:15px;">

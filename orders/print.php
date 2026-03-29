@@ -4,12 +4,13 @@ session_start();
 
 $id = intval($_GET['id']);
 
-/* GET ORDER + CUSTOMER */
+/* GET ORDER + CUSTOMER + ADDRESS */
 $order = mysqli_fetch_assoc(mysqli_query($conn,"
 SELECT 
-orders.*,
-customers.customer_name,
-customers.contact
+    orders.*,
+    customers.customer_name,
+    customers.contact,
+    customers.address
 FROM orders
 LEFT JOIN customers ON customers.id = orders.customer_id
 WHERE orders.id = $id
@@ -18,8 +19,8 @@ WHERE orders.id = $id
 /* GET ORDER ITEMS */
 $items = mysqli_query($conn,"
 SELECT 
-order_items.*,
-products.product_name
+    order_items.*,
+    products.product_name
 FROM order_items
 LEFT JOIN products ON products.id = order_items.product_id
 WHERE order_items.order_id = $id
@@ -183,8 +184,8 @@ border-radius:4px;
 ">
 Print Receipt
 </button>
-</div>
-
+</div style="display:flex; align-items:center; gap:10px;">
+<h2>BILLING</h2><br>
 <h2>RECEIPT</h2>
 
 </div>
@@ -207,6 +208,11 @@ Print Receipt
 <tr>
 <td><b>Contact</b></td>
 <td><?= $order['contact'] ?></td>
+</tr>
+
+<tr>
+<td><b>Address</b></td>
+<td><?= $order['address'] ?></td>
 </tr>
 
 <tr>
@@ -259,8 +265,6 @@ Print Receipt
 
 </table>
 
-
-<!-- SIGNATURE -->
 
 <div class="signature-area">
 

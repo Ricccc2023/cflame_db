@@ -12,7 +12,7 @@ UPLOAD FOLDER
 $uploadDir = "uploads/";
 
 if(!is_dir($uploadDir)){
-mkdir($uploadDir,0777,true);
+    mkdir($uploadDir,0777,true);
 }
 
 /* ===============================
@@ -21,56 +21,49 @@ CREATE ORDER
 
 if(isset($_POST['start_order'])){
 
-$customer = $_POST['customer'];
-$date = $_POST['date'];
-$payment = $_POST['mode_of_payment'];
+    $customer = $_POST['customer'];
+    $date     = $_POST['date'];
+    $payment  = $_POST['mode_of_payment'];
 
-$receipt = NULL;
+    /* GET ADDRESS FROM CUSTOMER */
+    $cust = mysqli_fetch_assoc(mysqli_query($conn,"
+        SELECT address FROM customers WHERE id='$customer'
+    "));
+    $address = $cust['address'] ?? '';
 
-/* UPLOAD RECEIPT */
+    $receipt = NULL;
 
-$uploadDir = "uploads/";
+    if($payment=="GCash" && !empty($_FILES['receipt']['name'])){
 
-if(!is_dir($uploadDir)){
-mkdir($uploadDir,0777,true);
-}
+        $filename   = time().'_'.basename($_FILES['receipt']['name']);
+        $targetPath = $uploadDir.$filename;
 
-if($payment=="GCash" && !empty($_FILES['receipt']['name'])){
+        if(move_uploaded_file($_FILES['receipt']['tmp_name'],$targetPath)){
+            $receipt = $filename;
+        }
+    }
 
-$filename = time().'_'.basename($_FILES['receipt']['name']);
+    /* INSERT ORDER WITH ADDRESS */
 
-$targetPath = $uploadDir.$filename;
+    mysqli_query($conn,"
+    INSERT INTO orders (customer_id,address,order_date,total,mode_of_payment,receipt_image)
+    VALUES ('$customer','$address','$date',0,'$payment','$receipt')
+    ");
 
-if(move_uploaded_file($_FILES['receipt']['tmp_name'],$targetPath)){
-$receipt = $filename;
-}
+    $order_id = mysqli_insert_id($conn);
 
-}
+    /* GENERATE INVOICE */
 
-/* ===============================
-INSERT ORDER
-=============================== */
+    $invoice_no = "INV-".date("Ymd")."-".$order_id;
 
-mysqli_query($conn,"
-INSERT INTO orders (customer_id,order_date,total,mode_of_payment,receipt_image)
-VALUES ('$customer','$date',0,'$payment','$receipt')
-");
+    mysqli_query($conn,"
+    UPDATE orders
+    SET invoice_no='$invoice_no'
+    WHERE id=$order_id
+    ");
 
-$order_id = mysqli_insert_id($conn);
-
-/* GENERATE INVOICE */
-
-$invoice_no = "INV-".date("Ymd")."-".$order_id;
-
-mysqli_query($conn,"
-UPDATE orders
-SET invoice_no='$invoice_no'
-WHERE id=$order_id
-");
-
-header("Location:create.php?order=".$order_id);
-exit;
-
+    header("Location:create.php?order=".$order_id);
+    exit;
 }
 
 /* ===============================
@@ -79,43 +72,39 @@ ADD PRODUCT
 
 if(isset($_POST['add_product'])){
 
-$order_id = $_POST['order_id'];
-$product_id = $_POST['product'];
-$qty = $_POST['qty'];
+    $order_id  = $_POST['order_id'];
+    $product_id = $_POST['product'];
+    $qty        = $_POST['qty'];
 
-$product = mysqli_fetch_assoc(
-mysqli_query($conn,"SELECT * FROM products WHERE id=$product_id")
-);
+    $product = mysqli_fetch_assoc(
+        mysqli_query($conn,"SELECT * FROM products WHERE id=$product_id")
+    );
 
-if($qty > $product['quantity']){
+    if($qty > $product['quantity']){
 
-$error = "Not enough stock available.";
+        $error = "Not enough stock available.";
 
-}else{
+    }else{
 
-$price = $product['price'];
-$subtotal = $price * $qty;
+        $price    = $product['price'];
+        $subtotal = $price * $qty;
 
-mysqli_query($conn,"
-INSERT INTO order_items
-(order_id,product_id,quantity,price,subtotal)
-VALUES
-('$order_id','$product_id','$qty','$price','$subtotal')
-");
+        mysqli_query($conn,"
+        INSERT INTO order_items
+        (order_id,product_id,quantity,price,subtotal)
+        VALUES
+        ('$order_id','$product_id','$qty','$price','$subtotal')
+        ");
 
-/* UPDATE STOCK */
+        mysqli_query($conn,"
+        UPDATE products
+        SET quantity = quantity - $qty
+        WHERE id=$product_id
+        ");
 
-mysqli_query($conn,"
-UPDATE products
-SET quantity = quantity - $qty
-WHERE id=$product_id
-");
-
-header("Location:create.php?order=".$order_id);
-exit;
-
-}
-
+        header("Location:create.php?order=".$order_id);
+        exit;
+    }
 }
 
 /* ===============================
@@ -124,28 +113,26 @@ CONFIRM ORDER
 
 if(isset($_POST['confirm_order'])){
 
-$order_id = $_POST['order_id'];
+    $order_id = $_POST['order_id'];
 
-$total = mysqli_fetch_assoc(mysqli_query($conn,"
-SELECT SUM(subtotal) as total
-FROM order_items
-WHERE order_id=$order_id
-"));
+    $total = mysqli_fetch_assoc(mysqli_query($conn,"
+    SELECT SUM(subtotal) as total
+    FROM order_items
+    WHERE order_id=$order_id
+    "));
 
-mysqli_query($conn,"
-UPDATE orders
-SET total=".$total['total']."
-WHERE id=$order_id
-");
+    mysqli_query($conn,"
+    UPDATE orders
+    SET total=".$total['total']."
+    WHERE id=$order_id
+    ");
 
-header("Location:view.php?id=".$order_id);
-exit;
-
+    header("Location:view.php?id=".$order_id);
+    exit;
 }
 
 $customers = mysqli_query($conn,"SELECT * FROM customers");
-$products = mysqli_query($conn,"SELECT * FROM products WHERE quantity > 0");
-
+$products  = mysqli_query($conn,"SELECT * FROM products WHERE quantity > 0");
 ?>
 
 <?php include '../includes/header.php'; ?>
@@ -162,8 +149,6 @@ $products = mysqli_query($conn,"SELECT * FROM products WHERE quantity > 0");
 </div>
 
 <?php if(!$order_id): ?>
-
-<!-- CREATE ORDER -->
 
 <div class="card form-wrapper">
 
@@ -188,6 +173,13 @@ $products = mysqli_query($conn,"SELECT * FROM products WHERE quantity > 0");
 
 </div>
 
+<!-- ADDRESS DISPLAY -->
+
+<div class="form-row">
+<label>Address</label>
+<input type="text" id="customerAddress" readonly>
+</div>
+
 <div class="form-row">
 <label>Order Date</label>
 <input type="date" name="date" required>
@@ -207,10 +199,8 @@ $products = mysqli_query($conn,"SELECT * FROM products WHERE quantity > 0");
 </div>
 
 <div class="form-row" id="receiptField" style="display:none;">
-
 <label>Upload GCash Receipt</label>
 <input type="file" name="receipt" accept="image/*">
-
 </div>
 
 <button class="btn-save" name="start_order">
@@ -222,8 +212,6 @@ Start Order
 </div>
 
 <?php else: ?>
-
-<!-- ADD PRODUCTS -->
 
 <div class="card">
 
@@ -273,8 +261,6 @@ Add Product
 
 </div>
 
-<!-- ORDER ITEMS -->
-
 <div class="card">
 
 <h2>Order Items</h2>
@@ -311,12 +297,10 @@ $total += $row['subtotal'];
 ?>
 
 <tr>
-
 <td><?= $row['product_name'] ?></td>
 <td><?= $row['quantity'] ?></td>
 <td>₱<?= number_format($row['price'],2) ?></td>
 <td>₱<?= number_format($row['subtotal'],2) ?></td>
-
 </tr>
 
 <?php endwhile; ?>
@@ -345,15 +329,30 @@ Confirm Order
 
 <script>
 
+/* PAYMENT TOGGLE */
 document.getElementById("payment").addEventListener("change",function(){
-
-if(this.value=="GCash"){
-document.getElementById("receiptField").style.display="block";
-}else{
-document.getElementById("receiptField").style.display="none";
-}
-
+    document.getElementById("receiptField").style.display =
+    this.value=="GCash" ? "block" : "none";
 });
+
+/* AUTO LOAD ADDRESS */
+
+const customerData = {};
+
+<?php
+$cust_js = mysqli_query($conn,"SELECT id,address FROM customers");
+while($c = mysqli_fetch_assoc($cust_js)){
+    echo "customerData['".$c['id']."'] = '".addslashes($c['address'])."';";
+}
+?>
+
+document.querySelector('select[name="customer"]').addEventListener('change',function(){
+    document.getElementById('customerAddress').value =
+    customerData[this.value] ?? '';
+});
+
+/* INITIAL LOAD */
+document.querySelector('select[name="customer"]').dispatchEvent(new Event('change'));
 
 </script>
 

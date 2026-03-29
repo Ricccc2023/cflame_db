@@ -41,7 +41,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_paid'])){
         $update = $conn->prepare("UPDATE orders SET payment_status='paid' WHERE id=?");
         $update->bind_param("i",$order_id);
         $update->execute();
-
     }
 
     header("Location: index.php");
@@ -55,10 +54,13 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_paid'])){
 */
 
 $customer = $_GET['customer'] ?? '';
-$date = $_GET['date'] ?? '';
+$date     = $_GET['date'] ?? '';
 
 $sql = "
-SELECT orders.*, customers.customer_name
+SELECT 
+    orders.*,
+    customers.customer_name,
+    customers.address
 FROM orders
 LEFT JOIN customers ON orders.customer_id = customers.id
 WHERE 1=1
@@ -115,6 +117,7 @@ $result = mysqli_query($conn,$sql);
 <th>ID</th>
 <th>Invoice</th>
 <th>Customer</th>
+<th>Address</th> <!-- NEW -->
 <th>Date</th>
 <th>Total</th>
 <th>Payment</th>
@@ -137,17 +140,13 @@ $result = mysqli_query($conn,$sql);
 
 <td><?= htmlspecialchars($row['customer_name']) ?></td>
 
+<td><?= htmlspecialchars($row['address']) ?></td> <!-- NEW -->
+
 <td><?= $row['order_date'] ?></td>
 
 <td>₱<?= number_format($row['total'],2) ?></td>
 
 <td>
-
-<form method="POST" style="display:inline;">
-
-<input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-<input type="hidden" name="order_id" value="<?= $row['id'] ?>">
-<input type="hidden" name="toggle_payment" value="1">
 
 <?php if($row['payment_status'] === 'paid'): ?>
 
@@ -176,8 +175,6 @@ Unpaid
 </form>
 
 <?php endif; ?>
-
-</form>
 
 </td>
 

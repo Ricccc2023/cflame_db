@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 14, 2026 at 03:56 AM
+-- Generation Time: Mar 29, 2026 at 09:50 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -125,6 +125,13 @@ CREATE TABLE `declined_orders_archive` (
   `declined_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `declined_orders_archive`
+--
+
+INSERT INTO `declined_orders_archive` (`id`, `customer_name`, `contact`, `address`, `product_id`, `quantity`, `message`, `declined_at`) VALUES
+(1, 'Ric Ilagan', '09854002367', 'Trapiche Tanauan City Batangs', NULL, NULL, '', '2026-03-26 11:35:27');
+
 -- --------------------------------------------------------
 
 --
@@ -155,7 +162,11 @@ INSERT INTO `orders` (`id`, `customer_id`, `order_date`, `total`, `created_at`, 
 (34, 2, '2026-03-14', 12000.00, '2026-03-13 19:03:21', 'INV-TEST-002', NULL, NULL, NULL, NULL, 'paid'),
 (35, 3, '2026-03-13', 3200.00, '2026-03-13 19:03:21', 'INV-TEST-003', NULL, NULL, NULL, NULL, 'paid'),
 (36, 2, '2026-03-12', 15000.00, '2026-03-13 19:03:21', 'INV-TEST-004', NULL, NULL, NULL, NULL, 'paid'),
-(37, 4, '2026-03-11', 8000.00, '2026-03-13 19:03:21', 'INV-TEST-005', NULL, NULL, NULL, NULL, 'paid');
+(37, 4, '2026-03-11', 8000.00, '2026-03-13 19:03:21', 'INV-TEST-005', NULL, NULL, NULL, NULL, 'paid'),
+(38, NULL, '2026-03-29', 0.00, '2026-03-29 19:14:38', 'INV-20260329-38', NULL, NULL, 'Cash', NULL, 'unpaid'),
+(39, NULL, '2026-03-29', 96000.00, '2026-03-29 19:15:00', 'INV-20260329-39', NULL, NULL, 'Cash', NULL, 'unpaid'),
+(40, NULL, '2026-03-29', 180000.00, '2026-03-29 19:18:23', 'INV-20260329-40', NULL, NULL, 'Cash', NULL, 'unpaid'),
+(41, NULL, '2026-03-29', 0.00, '2026-03-29 19:25:09', 'INV-20260329-41', NULL, NULL, 'Cash', NULL, 'unpaid');
 
 -- --------------------------------------------------------
 
@@ -171,6 +182,15 @@ CREATE TABLE `order_items` (
   `price` decimal(10,2) DEFAULT NULL,
   `subtotal` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `order_items`
+--
+
+INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `price`, `subtotal`) VALUES
+(35, 39, 5, 12, 8000.00, 96000.00),
+(36, 40, 4, 12, 15000.00, 180000.00),
+(51, 41, 4, 5, 15000.00, 75000.00);
 
 -- --------------------------------------------------------
 
@@ -190,13 +210,6 @@ CREATE TABLE `pending_orders` (
   `mode_of_payment` varchar(50) DEFAULT NULL,
   `receipt_image` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `pending_orders`
---
-
-INSERT INTO `pending_orders` (`id`, `customer_name`, `contact`, `address`, `product_id`, `quantity`, `message`, `created_at`, `mode_of_payment`, `receipt_image`) VALUES
-(32, 'Ric Ilagan', '09854002367', 'Trapiche Tanauan City Batangs', NULL, NULL, NULL, '2026-03-13 17:49:39', 'GCash', '1773424179_gcash receipt.png');
 
 -- --------------------------------------------------------
 
@@ -266,9 +279,9 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `product_id`, `product_name`, `category`, `brand`, `model_number`, `quantity`, `price`, `unit`, `storage_location`, `status`, `date_purchased`, `last_inspection_date`, `next_inspection_date`, `created_at`) VALUES
-(3, 'FE-001', 'ABC Dry Chemical Fire Extinguisher', 'Fire Extinguisher', 'Kidde', 'FX-ABC-10', 71, 2500.00, 'pcs', 'Building A - Safety Room', 'Available', '2024-01-15', '2025-01-10', '2026-01-10', '2026-03-07 18:30:31'),
-(4, 'FA-001', 'Addressable Fire Alarm Control Panel', 'Fire Alarm', 'Honeywell', 'HFA-3200', 100, 15000.00, 'units', 'Main Control Room', 'In Use', '2023-08-10', '2025-02-05', '2026-02-05', '2026-03-07 18:30:31'),
-(5, 'PPE-001', 'Firefighter Protective Suit', 'PPE', 'Dräger', 'FPS-7000', 98, 8000.00, 'sets', 'Warehouse B - Locker Area', 'Available', '2024-05-20', '2025-03-01', '2026-03-01', '2026-03-07 18:30:31'),
+(3, 'FE-001', 'ABC Dry Chemical Fire Extinguisher', 'Fire Extinguisher', 'Kidde', 'FX-ABC-10', 1, 2500.00, 'pcs', 'Building A - Safety Room', 'Available', '2024-01-15', '2025-01-10', '2026-01-10', '2026-03-07 18:30:31'),
+(4, 'FA-001', 'Addressable Fire Alarm Control Panel', 'Fire Alarm', 'Honeywell', 'HFA-3200', 83, 15000.00, 'units', 'Main Control Room', 'In Use', '2023-08-10', '2025-02-05', '2026-02-05', '2026-03-07 18:30:31'),
+(5, 'PPE-001', 'Firefighter Protective Suit', 'PPE', 'Dräger', 'FPS-7000', 86, 8000.00, 'sets', 'Warehouse B - Locker Area', 'Available', '2024-05-20', '2025-03-01', '2026-03-01', '2026-03-07 18:30:31'),
 (6, 'FE-002', 'Carbon Dioxide Fire Extinguisher', 'Fire Extinguisher', 'Kidde', 'CO2-5LB', 98, 3200.00, 'pcs', 'Building A - Safety Room', 'Available', '2025-02-10', '2026-02-01', '2027-02-01', '2026-03-07 19:37:54'),
 (7, 'FD-001', 'Smoke Fire Detector', 'Fire Detector', 'Honeywell', 'SD-100', 99, 1800.00, 'pcs', 'Warehouse B - Shelf 3', 'Available', '2025-05-15', '2026-05-10', '2027-05-10', '2026-03-07 19:37:54');
 
@@ -295,7 +308,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `fullname`, `username`, `password`, `role`, `availability`, `per_day`) VALUES
 (1, 'Administrator', 'admin', 'admin123', 'admin', 0, 500.00),
 (2, 'Winnie Kaith Gnilo', 'gnilo', 'gnilo', 'staff', 0, 500.00),
-(4, 'Renjie Escultura', 'escultura', 'escultura', 'staff', 0, 500.00);
+(4, 'Renjie Escultura', 'escultura', 'escultura', 'staff', 0, 400.00);
 
 --
 -- Indexes for dumped tables
@@ -382,19 +395,19 @@ ALTER TABLE `customers`
 -- AUTO_INCREMENT for table `declined_orders_archive`
 --
 ALTER TABLE `declined_orders_archive`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `pending_orders`

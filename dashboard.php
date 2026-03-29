@@ -63,6 +63,45 @@ $monthly_sales = $row['total'] ?? 0;
 
 /*
 |--------------------------------------------------------------------------
+| LOW STOCKS (INVENTORY)
+|--------------------------------------------------------------------------
+*/
+
+$low_stock_list = [];
+
+$q = mysqli_query($conn,"
+SELECT product_name, quantity
+FROM products
+WHERE quantity <= 5
+ORDER BY quantity ASC
+LIMIT 5
+");
+
+while($row = mysqli_fetch_assoc($q)){
+    $low_stock_list[] = $row;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| PENDING ORDERS TODAY
+|--------------------------------------------------------------------------
+*/
+
+$pending_today = 0;
+
+$q = mysqli_query($conn,"
+SELECT COUNT(*) as total
+FROM pending_orders
+WHERE DATE(created_at) = '$today'
+");
+
+$row = mysqli_fetch_assoc($q);
+$pending_today = $row['total'] ?? 0;
+
+
+/*
+|--------------------------------------------------------------------------
 | SALES TREND (LAST 7 DAYS)
 |--------------------------------------------------------------------------
 */
@@ -72,20 +111,19 @@ $trend_data = [];
 
 for($i=6;$i>=0;$i--){
 
-$date = date("Y-m-d",strtotime("-$i days"));
+    $date = date("Y-m-d",strtotime("-$i days"));
 
-$q = mysqli_query($conn,"
-SELECT SUM(total) as total
-FROM orders
-WHERE payment_status='paid'
-AND order_date='$date'
-");
+    $q = mysqli_query($conn,"
+    SELECT SUM(total) as total
+    FROM orders
+    WHERE payment_status='paid'
+    AND order_date='$date'
+    ");
 
-$r = mysqli_fetch_assoc($q);
+    $r = mysqli_fetch_assoc($q);
 
-$trend_labels[] = date("M d",strtotime($date));
-$trend_data[] = $r['total'] ?? 0;
-
+    $trend_labels[] = date("M d",strtotime($date));
+    $trend_data[] = $r['total'] ?? 0;
 }
 
 
@@ -111,12 +149,9 @@ LIMIT 5
 ");
 
 while($row=mysqli_fetch_assoc($q)){
-
-$product_labels[] = $row['product_name'];
-$product_data[] = $row['qty'];
-
+    $product_labels[] = $row['product_name'];
+    $product_data[] = $row['qty'];
 }
-
 ?>
 
 <?php include "includes/header.php"; ?>
@@ -132,32 +167,67 @@ $product_data[] = $row['qty'];
 
 <div class="dashboard-grid">
 
-<!-- DAILY -->
+<!-- SALES OVERVIEW -->
 
 <div class="card stat-card">
-<h3>Daily Sales</h3>
-<div class="stat-value">
+
+<h3>Sales Overview</h3>
+
+<select id="salesView" class="sales-select">
+<option value="daily">Daily</option>
+<option value="weekly">Weekly</option>
+<option value="monthly">Monthly</option>
+</select>
+
+<div class="stat-value" id="salesValue">
 ₱<?= number_format($daily_sales,2) ?>
 </div>
+
 </div>
 
-<!-- WEEKLY -->
 
-<div class="card stat-card">
-<h3>Weekly Sales</h3>
-<div class="stat-value">
-₱<?= number_format($weekly_sales,2) ?>
-</div>
-</div>
-
-<!-- MONTHLY -->
+<!-- LOW STOCK ALERT -->
 
 <div class="card stat-card">
-<h3>Monthly Sales</h3>
+
+<h3>Low Stock Alert</h3>
+
+<div style="text-align:left; margin-top:10px;">
+
+<?php if(count($low_stock_list) > 0): ?>
+
+<?php foreach($low_stock_list as $item): ?>
+
+<div style="margin-bottom:8px;">
+<strong><?= $item['product_name'] ?></strong><br>
+<small style="color:red;">Qty: <?= $item['quantity'] ?></small>
+</div>
+
+<?php endforeach; ?>
+
+<?php else: ?>
+
+<div style="color:#555;">No low stock items</div>
+
+<?php endif; ?>
+
+</div>
+
+</div>
+
+
+<!-- PENDING ORDERS TODAY -->
+
+<div class="card stat-card">
+
+<h3>Pending Orders Today</h3>
+
 <div class="stat-value">
-₱<?= number_format($monthly_sales,2) ?>
+<?= $pending_today ?>
 </div>
+
 </div>
+
 
 <!-- SALES TREND -->
 
@@ -165,6 +235,7 @@ $product_data[] = $row['qty'];
 <h3>Sales Trend</h3>
 <canvas id="salesTrend"></canvas>
 </div>
+
 
 <!-- TOP PRODUCTS -->
 
@@ -181,6 +252,25 @@ $product_data[] = $row['qty'];
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+
+/* SALES VIEW SWITCHER */
+
+const salesData = {
+    daily: <?= $daily_sales ?>,
+    weekly: <?= $weekly_sales ?>,
+    monthly: <?= $monthly_sales ?>
+};
+
+document.getElementById('salesView').addEventListener('change', function(){
+
+    let value = this.value;
+    let amount = salesData[value];
+
+    document.getElementById('salesValue').innerText =
+        '₱' + Number(amount).toLocaleString(undefined, {minimumFractionDigits:2});
+
+});
+
 
 /* SALES TREND */
 
@@ -239,11 +329,8 @@ plugins:{legend:{display:false}}
 display:grid;
 grid-template-columns: repeat(3, 1fr);
 gap:20px;
-margin-top:20px;
 width:100%;
 }
-
-/* CARD DESIGN SAME AS INVENTORY */
 
 .dashboard-grid .card{
 padding:20px;
@@ -254,14 +341,12 @@ width:100%;
 box-sizing:border-box;
 }
 
-/* SALES STAT */
-
 .stat-card{
 text-align:center;
 }
 
 .stat-card h3{
-margin-bottom:10px;
+margin-bottom:5px;
 font-weight:500;
 }
 
@@ -271,7 +356,13 @@ font-weight:bold;
 color:#8B0000;
 }
 
-/* GRAPH AREA */
+.sales-select{
+margin-top:10px;
+padding:6px;
+width:100%;
+border:1px solid #ccc;
+border-radius:4px;
+}
 
 .dashboard-grid .card:nth-child(4){
 grid-column: span 2;
@@ -281,14 +372,10 @@ grid-column: span 2;
 grid-column: span 1;
 }
 
-/* CHART SIZE */
-
 canvas{
 width:100% !important;
 height:320px !important;
 }
-
-/* RESPONSIVE */
 
 @media(max-width:1200px){
 
