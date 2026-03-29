@@ -3,7 +3,6 @@ require_once "../includes/config.php";
 require_once "../includes/auth.php";
 
 /* GET USER */
-
 $id = intval($_GET['id']);
 
 $user = mysqli_fetch_assoc(mysqli_query($conn,"
@@ -16,13 +15,11 @@ if(!$user){
 exit("User not found");
 }
 
-/* FILTER */
+/* DATE RANGE FILTER */
+$from = $_GET['from'] ?? date("Y-m-01");
+$to   = $_GET['to'] ?? date("Y-m-d");
 
-$month = $_GET['month'] ?? date("m");
-$year  = $_GET['year'] ?? date("Y");
-
-/* ATTENDANCE DATA */
-
+/* ATTENDANCE DATA (DATE RANGE) */
 $attendance = [];
 
 $q = mysqli_query($conn,"
@@ -30,8 +27,8 @@ SELECT DATE(time) as day
 FROM attendance
 WHERE user_id=$id
 AND type='IN'
-AND MONTH(time)='$month'
-AND YEAR(time)='$year'
+AND DATE(time) BETWEEN '$from' AND '$to'
+GROUP BY DATE(time)
 ");
 
 while($row=mysqli_fetch_assoc($q)){
@@ -39,19 +36,22 @@ $attendance[$row['day']] = true;
 }
 
 /* DAYS WORKED */
-
 $daysWorked = count($attendance);
 
 /* SALARY */
-
 $perDay = $user['per_day'];
 $totalSalary = $daysWorked * $perDay;
 
-/* CALENDAR DATA */
+/* CALENDAR BASE (GAMIT START DATE MONTH) */
+$month = date("m", strtotime($from));
+$year  = date("Y", strtotime($from));
 
 $daysInMonth = cal_days_in_month(CAL_GREGORIAN,$month,$year);
 $firstDay = date('w', strtotime("$year-$month-01"));
 $monthName = date("F", mktime(0,0,0,$month,1));
+
+/* PERIOD LABEL */
+$periodLabel = date("M d, Y", strtotime($from)) . " - " . date("M d, Y", strtotime($to));
 
 include "../includes/header.php";
 include "../includes/sidebar.php";
@@ -71,40 +71,18 @@ include "../includes/sidebar.php";
 
 </div>
 
-
 <!-- FILTER -->
-
 <div class="card">
 
 <form method="GET" class="filter-bar">
 
 <input type="hidden" name="id" value="<?= $id ?>">
 
-<select name="month">
+<label>From:</label>
+<input type="date" name="from" value="<?= $from ?>">
 
-<?php for($m=1;$m<=12;$m++): ?>
-
-<option value="<?= $m ?>"
-<?= $month==$m?'selected':'' ?>>
-<?= date("F",mktime(0,0,0,$m,1)) ?>
-</option>
-
-<?php endfor; ?>
-
-</select>
-
-<select name="year">
-
-<?php for($y=date("Y");$y>=2024;$y--): ?>
-
-<option value="<?= $y ?>"
-<?= $year==$y?'selected':'' ?>>
-<?= $y ?>
-</option>
-
-<?php endfor; ?>
-
-</select>
+<label>To:</label>
+<input type="date" name="to" value="<?= $to ?>">
 
 <button class="btn-search">Filter</button>
 
@@ -112,20 +90,12 @@ include "../includes/sidebar.php";
 
 </div>
 
-
+<!-- SUMMARY -->
 <div class="card" style="margin-bottom:20px;">
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
 
 <h3 style="margin:0;">Payroll Summary</h3>
-
-<a 
-href="print.php?id=<?= $id ?>&month=<?= $month ?>&year=<?= $year ?>"
-target="_blank"
-class="action-btn action-secondary"
->
-Print
-</a>
 </div>
 
 <table>
@@ -149,6 +119,11 @@ Print
 </td>
 </tr>
 
+<tr>
+<td>Period</td>
+<td><?= $periodLabel ?></td>
+</tr>
+
 </table>
 
 </div>
@@ -156,8 +131,7 @@ Print
 </div>
 
 
-<!-- RIGHT SIDE CALENDAR -->
-
+<!-- CALENDAR (IBINALIK) -->
 <div style="width:350px;">
 
 <div class="card">
@@ -169,7 +143,6 @@ Attendance — <?= $monthName ?> <?= $year ?>
 <table style="text-align:center; width:100%;">
 
 <thead>
-
 <tr>
 <th>Sun</th>
 <th>Mon</th>
@@ -179,11 +152,9 @@ Attendance — <?= $monthName ?> <?= $year ?>
 <th>Fri</th>
 <th>Sat</th>
 </tr>
-
 </thead>
 
 <tbody>
-
 <tr>
 
 <?php
@@ -191,14 +162,12 @@ Attendance — <?= $monthName ?> <?= $year ?>
 $counter = 0;
 
 /* EMPTY CELLS */
-
 for($i=0;$i<$firstDay;$i++){
 echo "<td></td>";
 $counter++;
 }
 
 /* DAYS LOOP */
-
 for($d=1;$d<=$daysInMonth;$d++){
 
 $dateCheck = "$year-$month-".str_pad($d,2,'0',STR_PAD_LEFT);
@@ -206,7 +175,15 @@ $dateCheck = "$year-$month-".str_pad($d,2,'0',STR_PAD_LEFT);
 $bg="#ffffff";
 $color="#000";
 
-if(isset($attendance[$dateCheck])){
+/* CONDITION:
+- dapat present
+- dapat pasok sa selected range
+*/
+if(
+isset($attendance[$dateCheck]) &&
+$dateCheck >= $from &&
+$dateCheck <= $to
+){
 $bg="#198754";
 $color="#fff";
 }
@@ -224,7 +201,6 @@ echo "</tr><tr>";
 ?>
 
 </tr>
-
 </tbody>
 
 </table>

@@ -2,7 +2,6 @@
 require_once "../includes/config.php";
 
 /* GET USER */
-
 $id = intval($_GET['id']);
 
 $user = mysqli_fetch_assoc(mysqli_query($conn,"
@@ -15,37 +14,33 @@ if(!$user){
 exit("User not found");
 }
 
-/* FILTER */
+/* DATE RANGE FILTER */
+$from = $_GET['from'] ?? date("Y-m-01");
+$to   = $_GET['to'] ?? date("Y-m-d");
 
-$month = $_GET['month'] ?? date("m");
-$year  = $_GET['year'] ?? date("Y");
-
-/* ATTENDANCE */
-
+/* ATTENDANCE (DATE RANGE FIXED) */
 $q = mysqli_query($conn,"
 SELECT DATE(time) as day
 FROM attendance
 WHERE user_id=$id
 AND type='IN'
-AND MONTH(time)='$month'
-AND YEAR(time)='$year'
+AND DATE(time) BETWEEN '$from' AND '$to'
+GROUP BY DATE(time)
 ");
 
 $daysWorked = mysqli_num_rows($q);
 
 /* PAYROLL */
-
 $perDay = $user['per_day'];
 $grossPay = $perDay * $daysWorked;
 
 /* OPTIONAL DEDUCTION */
-
 $deduction = $_GET['deduction'] ?? 0;
 
 $netPay = $grossPay - $deduction;
 
-$periodLabel = date("F",mktime(0,0,0,$month,1))." ".$year;
-
+/* PERIOD LABEL (FIXED) */
+$periodLabel = date("M d, Y", strtotime($from)) . " - " . date("M d, Y", strtotime($to));
 ?>
 
 <!DOCTYPE html>
@@ -53,7 +48,6 @@ $periodLabel = date("F",mktime(0,0,0,$month,1))." ".$year;
 <head>
 
 <meta charset="UTF-8">
-
 <title>Payslip</title>
 
 <style>
@@ -168,15 +162,12 @@ background:#157347;
 }
 
 @media print{
-
 .print-btn{
 display:none;
 }
-
 body{
 margin:0;
 }
-
 }
 
 </style>
@@ -186,11 +177,9 @@ margin:0;
 <body>
 
 <div class="print-btn">
-
 <button onclick="window.print()" class="print-green">
 🖨 Print Payslip
 </button>
-
 </div>
 
 <div class="wrapper">
@@ -218,7 +207,6 @@ margin:0;
 PAYSLIP
 </div>
 
-
 <div class="section">
 
 <table>
@@ -241,7 +229,6 @@ PAYSLIP
 </table>
 
 </div>
-
 
 <div class="section">
 
@@ -270,7 +257,6 @@ EARNINGS
 
 </div>
 
-
 <div class="section">
 
 <div class="section-title">
@@ -288,7 +274,6 @@ DEDUCTIONS
 
 </div>
 
-
 <div class="section">
 
 <table>
@@ -302,14 +287,11 @@ DEDUCTIONS
 
 </div>
 
-
 <div class="footer">
 
 <div class="signature">
-
 ___________________________ <br>
 Employee Signature
-
 </div>
 
 </div>

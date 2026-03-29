@@ -11,9 +11,9 @@ window.location='../dashboard.php';
 exit;
 }
 
-/* FILTER */
-$month = $_GET['month'] ?? date("m");
-$year  = $_GET['year'] ?? date("Y");
+/* FILTER (DATE RANGE) */
+$from = $_GET['from'] ?? date("Y-m-01"); // first day of month
+$to   = $_GET['to'] ?? date("Y-m-d");    // today
 
 /* UPDATE PER DAY */
 if(isset($_POST['update_salary'])){
@@ -42,33 +42,21 @@ include "../includes/sidebar.php";
 <div class="main">
 
 <div class="page-header">
-
 <div class="page-title">
 <h2>Payroll Management</h2>
 </div>
-
 </div>
 
-<!-- FILTER -->
+<!-- FILTER DATE RANGE -->
 <div class="card">
 
-<form method="GET" class="filter-bar">
+<form method="GET" class="filter-bar" style="display:flex;gap:10px;align-items:center;">
 
-<select name="month">
-<?php for($m=1;$m<=12;$m++): ?>
-<option value="<?= $m ?>" <?= $month==$m?'selected':'' ?>>
-<?= date("F",mktime(0,0,0,$m,1)) ?>
-</option>
-<?php endfor; ?>
-</select>
+<label>From:</label>
+<input type="date" name="from" value="<?= $from ?>">
 
-<select name="year">
-<?php for($y=date("Y");$y>=2024;$y--): ?>
-<option value="<?= $y ?>" <?= $year==$y?'selected':'' ?>>
-<?= $y ?>
-</option>
-<?php endfor; ?>
-</select>
+<label>To:</label>
+<input type="date" name="to" value="<?= $to ?>">
 
 <button class="btn-search">Filter</button>
 
@@ -77,7 +65,6 @@ include "../includes/sidebar.php";
 </div>
 
 <div class="card">
-
 <div class="table-wrap">
 
 <table>
@@ -98,9 +85,9 @@ include "../includes/sidebar.php";
 <?php while($row=mysqli_fetch_assoc($q)): ?>
 
 <?php
-/* ATTENDANCE COUNT */
 $userId = $row['id'];
 
+/* ATTENDANCE QUERY (DATE RANGE) */
 $attendance = [];
 
 $res = mysqli_query($conn,"
@@ -108,8 +95,7 @@ SELECT DATE(time) as day
 FROM attendance
 WHERE user_id=$userId
 AND type='IN'
-AND MONTH(time)='$month'
-AND YEAR(time)='$year'
+AND DATE(time) BETWEEN '$from' AND '$to'
 ");
 
 while($r=mysqli_fetch_assoc($res)){
@@ -118,7 +104,7 @@ $attendance[$r['day']] = true;
 
 $daysWorked = count($attendance);
 
-/* SALARY */
+/* SALARY COMPUTATION */
 $perDay = $row['per_day'];
 $totalSalary = $daysWorked * $perDay;
 ?>
@@ -132,9 +118,7 @@ $totalSalary = $daysWorked * $perDay;
 </td>
 
 <td>
-
 <form method="POST" style="display:flex;gap:5px;">
-
 <input type="hidden" name="user_id" value="<?= $row['id'] ?>">
 
 <input type="number"
@@ -147,9 +131,7 @@ style="width:100px;">
 class="action-btn action-success">
 Save
 </button>
-
 </form>
-
 </td>
 
 <td><?= $daysWorked ?></td>
@@ -161,22 +143,20 @@ Save
 </td>
 
 <td>
-
 <div class="actions">
 
-<a href="view.php?id=<?= $row['id'] ?>&month=<?= $month ?>&year=<?= $year ?>"
+<a href="view.php?id=<?= $row['id'] ?>&from=<?= $from ?>&to=<?= $to ?>"
 class="action-btn action-success">
 View
 </a>
 
-<a href="print.php?id=<?= $row['id'] ?>&month=<?= $month ?>&year=<?= $year ?>"
+<a href="print.php?id=<?= $row['id'] ?>&from=<?= $from ?>&to=<?= $to ?>"
 class="action-btn action-secondary"
 target="_blank">
 Print
 </a>
 
 </div>
-
 </td>
 
 </tr>
@@ -188,7 +168,6 @@ Print
 </table>
 
 </div>
-
 </div>
 
 </div>

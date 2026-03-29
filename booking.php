@@ -4,343 +4,423 @@ require_once "includes/config.php";
 $uploadDir = "pendings/uploads/";
 
 /* CREATE FOLDER IF NOT EXIST */
-if(!is_dir($uploadDir)){
-mkdir($uploadDir,0777,true);
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0777, true);
 }
 
-if(isset($_POST['submit'])){
+if (isset($_POST['submit'])) {
 
-$customer=$_POST['customer_name'];
-$contact=$_POST['contact'];
-$address=$_POST['address'];
-$payment=$_POST['mode_of_payment'];
+    $customer = $_POST['customer_name'];
+    $contact  = $_POST['contact'];
+    $address  = $_POST['address'];
+    $payment  = $_POST['mode_of_payment'];
 
-$receipt=NULL;
+    $receipt = NULL;
 
-/* HANDLE RECEIPT */
+    /* HANDLE RECEIPT */
+    if ($payment == "GCash" && !empty($_FILES['receipt']['name'])) {
 
-if($payment=="GCash" && !empty($_FILES['receipt']['name'])){
+        $filename   = time() . "_" . basename($_FILES['receipt']['name']);
+        $targetPath = $uploadDir . $filename;
 
-$filename=time()."_".basename($_FILES['receipt']['name']);
+        move_uploaded_file($_FILES['receipt']['tmp_name'], $targetPath);
 
-$targetPath=$uploadDir.$filename;
+        $receipt = $filename;
+    }
 
-move_uploaded_file($_FILES['receipt']['tmp_name'],$targetPath);
+    $product = $_POST['product_id'];
+    $qty     = $_POST['qty'];
+    $price   = $_POST['price'];
 
-$receipt=$filename;
+    /* INVENTORY CHECK */
+    for ($i = 0; $i < count($product); $i++) {
 
+        $pid = $product[$i];
+        $q   = $qty[$i];
+
+        $check = mysqli_query($conn, "SELECT quantity FROM products WHERE id = $pid");
+        $row   = mysqli_fetch_assoc($check);
+
+        if ($q > $row['quantity']) {
+            $error = "Quantity exceeds available stock.";
+            break;
+        }
+    }
+
+    if (!isset($error)) {
+
+        mysqli_query($conn, "
+            INSERT INTO pending_orders
+                (customer_name, contact, address, mode_of_payment, receipt_image)
+            VALUES
+                ('$customer', '$contact', '$address', '$payment', '$receipt')
+        ");
+
+        $pending_id = mysqli_insert_id($conn);
+
+        for ($i = 0; $i < count($product); $i++) {
+
+            $pid = $product[$i];
+            $q   = $qty[$i];
+            $p   = $price[$i];
+
+            $subtotal = $q * $p;
+
+            mysqli_query($conn, "
+                INSERT INTO pending_order_items
+                    (pending_order_id, product_id, quantity, price, subtotal)
+                VALUES
+                    ($pending_id, $pid, $q, $p, $subtotal)
+            ");
+        }
+
+        $success = true;
+    }
 }
 
-$product=$_POST['product_id'];
-$qty=$_POST['qty'];
-$price=$_POST['price'];
-
-/* INVENTORY CHECK */
-
-for($i=0;$i<count($product);$i++){
-
-$pid=$product[$i];
-$q=$qty[$i];
-
-$check=mysqli_query($conn,"SELECT quantity FROM products WHERE id=$pid");
-$row=mysqli_fetch_assoc($check);
-
-if($q > $row['quantity']){
-
-$error="Quantity exceeds available stock.";
-break;
-
-}
-
-}
-
-if(!isset($error)){
-
-mysqli_query($conn,"
-INSERT INTO pending_orders
-(customer_name,contact,address,mode_of_payment,receipt_image)
-VALUES
-('$customer','$contact','$address','$payment','$receipt')
-");
-
-$pending_id=mysqli_insert_id($conn);
-
-for($i=0;$i<count($product);$i++){
-
-$pid=$product[$i];
-$q=$qty[$i];
-$p=$price[$i];
-
-$subtotal=$q*$p;
-
-mysqli_query($conn,"
-INSERT INTO pending_order_items
-(pending_order_id,product_id,quantity,price,subtotal)
-VALUES
-($pending_id,$pid,$q,$p,$subtotal)
-");
-
-}
-
-$success=true;
-
-}
-
-}
-
-$products=mysqli_query($conn,"SELECT * FROM products ORDER BY product_name ASC");
+$products = mysqli_query($conn, "SELECT * FROM products ORDER BY product_name ASC");
 
 include "includes/header.php";
 ?>
 
-<div class="main">
+<style>
 
-<div style="display:flex;justify-content:center;margin-top:50px;gap:30px;">
+/* Layout Wrapper */
+.page-wrapper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 25px;
+    padding: 30px;
+}
 
-<div class="card booking-card">
+/* MAIN APPOINTMENT CARD */
+.card {
+    width: 1000px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 
-<div class="form-header">
-<h2>Order Products</h2>
-</div>
 
-<?php if(isset($error)): ?>
+}
 
-<div class="error-box">
-<?= $error ?>
-</div>
+/* Remove rounded corners */
+.card,
+.side-card,
+input,
+select,
+.btn-save {
+    border-radius: 0 !important;
+}
 
-<?php endif; ?>
+/* SIDE INSTRUCTION CARD */
+.side-card {
+    width: 280px;
+    background: #f1f1f1;
+    padding: 18px;
+    border: 1px solid #ddd;
+}
 
-<?php if(isset($success)): ?>
+/* Headings */
+h2 {
+    margin-bottom: 3px;
+}
 
-<div class="error-box" style="background:#e9ffe9;border-color:#2ecc71;">
-Order submitted successfully. Please wait for confirmation.
-</div>
+.sub-text {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
 
-<?php endif; ?>
+/* FORM GRID */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
 
-<form method="POST" enctype="multipart/form-data">
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
 
-<div class="form-row">
-<label>Customer Name</label>
-<input type="text" name="customer_name" required>
-</div>
+.full-width {
+    grid-column: 1 / -1;
+}
 
-<div class="form-row">
-<label>Contact</label>
-<input type="text" name="contact">
-</div>
+label {
+    font-size: 13px;
+    margin-bottom: 3px;
+    font-weight: 600;
+}
 
-<div class="form-row">
-<label>Address</label>
-<input type="text" name="address">
-</div>
+input, select {
+    padding: 6px 8px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    background: rgba(255,255,255,0.95);
+}
 
-<div class="form-row">
-<label>Mode of Payment</label>
+/* Checkbox */
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 6px;
+    font-size: 13px;
+}
 
-<select name="mode_of_payment" id="payment" required>
+/* Button */
+.btn-save {
+    background: #1f4e46;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    cursor: pointer;
+}
 
-<option value="">Select Payment</option>
-<option value="GCash">GCash</option>
-<option value="Cash on Delivery">Cash on Delivery</option>
+.btn-save:hover {
+    background: #1f4e46;
+}
 
-</select>
+/* Error box */
+.error-box {
+    background: #ffe6e6;
+    color: #b30000;
+    padding: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    border: 1px solid #ffcccc;
+}
+</style>
 
-</div>
+<div class="page-wrapper">
 
-<div class="form-row" id="receiptField" style="display:none;">
+    <div style="display:flex; justify-content:center; margin-top:50px; gap:30px;">
 
-<label>Upload GCash Receipt</label>
-<input type="file" name="receipt">
+        <div class="card">
 
-</div>
+            <div class="form-header">
+                <h3>Order Products</h3>
+            </div>
 
-<div class="form-row">
-<label>Select Product</label>
+            <?php if (isset($error)): ?>
+                <div class="error-box">
+                    <?= $error ?>
+                </div>
+            <?php endif; ?>
 
-<select id="productSelect">
+            <?php if (isset($success)): ?>
+                <div class="error-box" style="background:#e9ffe9; border-color:#2ecc71;">
+                    Order submitted successfully. Please wait for confirmation.
+                </div>
+            <?php endif; ?>
 
-<option value="">Select Product</option>
+            <form method="POST" enctype="multipart/form-data">
 
-<?php while($p=mysqli_fetch_assoc($products)): ?>
+                <div class="form-row">
+                    <label>Customer Name</label>
+                    <input type="text" name="customer_name" required>
+                </div>
 
-<option value="<?= $p['id'] ?>"
-data-name="<?= $p['product_name'] ?>"
-data-price="<?= $p['price'] ?>"
-data-stock="<?= $p['quantity'] ?>">
+                <div class="form-row">
+                    <label>Contact</label>
+                    <input type="text" name="contact">
+                </div>
 
-<?= $p['product_name'] ?> - ₱<?= number_format($p['price'],2) ?>
+                <div class="form-row">
+                    <label>Address</label>
+                    <input type="text" name="address">
+                </div>
 
-</option>
+                <div class="form-row">
+                    <label>Mode of Payment</label>
 
-<?php endwhile; ?>
+                    <select name="mode_of_payment" id="payment" required>
+                        <option value="">Select Payment</option>
+                        <option value="GCash">GCash</option>
+                        <option value="Cash on Delivery">Cash on Delivery</option>
+                    </select>
+                </div>
 
-</select>
+                <div class="form-row" id="receiptField" style="display:none;">
+                    <label>Upload GCash Receipt</label>
+                    <input type="file" name="receipt">
+                </div>
 
-</div>
+                <div class="form-row">
+                    <label>Select Product</label>
 
-<br>
+                    <select id="productSelect">
+                        <option value="">Select Product</option>
 
-<table id="cart">
+                        <?php while ($p = mysqli_fetch_assoc($products)): ?>
+                            <option value="<?= $p['id'] ?>"
+                                    data-name="<?= $p['product_name'] ?>"
+                                    data-price="<?= $p['price'] ?>"
+                                    data-stock="<?= $p['quantity'] ?>">
+                                <?= $p['product_name'] ?> - ₱<?= number_format($p['price'], 2) ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
 
-<tr>
-<th>Product</th>
-<th>Qty</th>
-<th>Price</th>
-<th>Subtotal</th>
-<th></th>
-</tr>
+                <br>
 
-</table>
+                <table id="cart">
+                    <tr>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Subtotal</th>
+                        <th></th>
+                    </tr>
+                </table>
 
-<br>
+                <br>
 
-<h3>Total: ₱ <span id="total">0</span></h3>
+                <h3>Total: ₱ <span id="total">0</span></h3>
 
-<br>
+                <br>
 
-<button class="btn-save" name="submit">
-Submit Order
-</button>
+                <button class="btn-save" name="submit">
+                    Submit Order
+                </button>
 
-</form>
+            </form>
 
-</div>
+        </div>
 
-</div>
+    </div>
+    
+<div class="side-card">
+
+        <h3 style="margin-bottom:8px;">Booking Instructions</h3>
+
+        <p style="font-size:13px; margin-bottom:10px;">
+            Please follow the guidelines below before confirming your appointment.
+        </p>
+
+        <ul style="font-size:13px; padding-left:18px; line-height:1.5;">
+            <li>Appointments must be booked at least <b>1 day in advance</b>.</li>
+            <li>Maximum of <b>1 active booking per patient</b>.</li>
+            <li>Please arrive <b>15 minutes early</b> on appointment day.</li>
+            <li>Bring valid ID and previous medical records (if any).</li>
+            <li>Late arrivals beyond 20 minutes may be rescheduled.</li>
+        </ul>
+
+                <h3 style="margin-top:8px;">Gcash</h3>
+
+        <p style="font-size:13px; margin-bottom:1px;">
+            09123654789 // Jaybee S.
+        </p>
+        <p style="font-size:13px; margin-bottom:1px;">
+            09987456321// Panday B.
+        </p>
+
+    </div>
 
 </div>
 
 <script>
+let cartProducts = [];
 
-let cartProducts=[];
-
-document.getElementById("payment").addEventListener("change",function(){
-
-if(this.value=="GCash"){
-document.getElementById("receiptField").style.display="block";
-}else{
-document.getElementById("receiptField").style.display="none";
-}
-
+document.getElementById("payment").addEventListener("change", function () {
+    if (this.value == "GCash") {
+        document.getElementById("receiptField").style.display = "block";
+    } else {
+        document.getElementById("receiptField").style.display = "none";
+    }
 });
 
-document.getElementById("productSelect").addEventListener("change",function(){
+document.getElementById("productSelect").addEventListener("change", function () {
 
-let option=this.selectedOptions[0];
+    let option = this.selectedOptions[0];
 
-let id=option.value;
-let name=option.dataset.name;
-let price=option.dataset.price;
-let stock=option.dataset.stock;
+    let id    = option.value;
+    let name  = option.dataset.name;
+    let price = option.dataset.price;
+    let stock = option.dataset.stock;
 
-if(!id) return;
+    if (!id) return;
 
-if(cartProducts.includes(id)){
-alert("Product already added");
-return;
-}
+    if (cartProducts.includes(id)) {
+        alert("Product already added");
+        return;
+    }
 
-cartProducts.push(id);
+    cartProducts.push(id);
 
-let table=document.getElementById("cart");
+    let table = document.getElementById("cart");
+    let row   = table.insertRow();
 
-let row=table.insertRow();
+    row.innerHTML = `
+        <td>
+            ${name}
+            <input type="hidden" name="product_id[]" value="${id}">
+            <input type="hidden" class="stock" value="${stock}">
+        </td>
 
-row.innerHTML=`
+        <td>
+            <input type="number" name="qty[]" value="1" min="1" class="qty">
+        </td>
 
-<td>
+        <td>
+            <input type="text" name="price[]" value="${price}" readonly>
+        </td>
 
-${name}
+        <td class="subtotal">${price}</td>
 
-<input type="hidden" name="product_id[]" value="${id}">
-<input type="hidden" class="stock" value="${stock}">
+        <td>
+            <button type="button" onclick="removeItem(this,'${id}')">X</button>
+        </td>
+    `;
 
-</td>
-
-<td>
-
-<input type="number" name="qty[]" value="1" min="1" class="qty">
-
-</td>
-
-<td>
-
-<input type="text" name="price[]" value="${price}" readonly>
-
-</td>
-
-<td class="subtotal">${price}</td>
-
-<td>
-
-<button type="button" onclick="removeItem(this,'${id}')">X</button>
-
-</td>
-
-`;
-
-calculate();
-
+    calculate();
 });
 
-document.addEventListener("input",function(e){
+document.addEventListener("input", function (e) {
+    if (e.target.classList.contains("qty")) {
 
-if(e.target.classList.contains("qty")){
+        let row   = e.target.closest("tr");
+        let stock = row.querySelector(".stock").value;
 
-let row=e.target.closest("tr");
+        if (Number(e.target.value) > Number(stock)) {
+            alert("Not enough stock available");
+            e.target.value = stock;
+        }
 
-let stock=row.querySelector(".stock").value;
-
-if(Number(e.target.value) > Number(stock)){
-
-alert("Not enough stock available");
-
-e.target.value=stock;
-
-}
-
-calculate();
-
-}
-
+        calculate();
+    }
 });
 
-function calculate(){
+function calculate() {
 
-let rows=document.querySelectorAll("#cart tr");
+    let rows  = document.querySelectorAll("#cart tr");
+    let total = 0;
 
-let total=0;
+    rows.forEach((row, i) => {
 
-rows.forEach((row,i)=>{
+        if (i == 0) return;
 
-if(i==0) return;
+        let qty   = row.querySelector(".qty").value;
+        let price = row.querySelector("input[name='price[]']").value;
 
-let qty=row.querySelector(".qty").value;
+        let sub = qty * price;
 
-let price=row.querySelector("input[name='price[]']").value;
+        row.querySelector(".subtotal").innerText = sub;
 
-let sub=qty*price;
+        total += Number(sub);
+    });
 
-row.querySelector(".subtotal").innerText=sub;
-
-total+=Number(sub);
-
-});
-
-document.getElementById("total").innerText=total;
-
+    document.getElementById("total").innerText = total;
 }
 
-function removeItem(btn,id){
+function removeItem(btn, id) {
 
-cartProducts=cartProducts.filter(p=>p!=id);
+    cartProducts = cartProducts.filter(p => p != id);
 
-btn.closest("tr").remove();
+    btn.closest("tr").remove();
 
-calculate();
-
+    calculate();
 }
-
 </script>

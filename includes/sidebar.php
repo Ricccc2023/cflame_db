@@ -19,11 +19,7 @@ Users
 </a>
 <?php endif; ?>
 
-<?php if($role === 'admin'): ?>
-<a href="<?= BASE_URL ?>/payroll/index.php">
-Payroll
-</a>
-<?php endif; ?>
+
 
 <a href="<?= BASE_URL ?>/customers/index.php">
 Customers
@@ -44,6 +40,13 @@ Pending
 </div>
 
 <div class="power">
+
+<?php if($role === 'admin'): ?>
+<a style="display:flex;  margin-bottom:40px; gap:30px;"
+href="<?= BASE_URL ?>/payroll/index.php">
+Payroll
+</a>
+<?php endif; ?>
 
 <a class="logout-btn" href="<?= BASE_URL ?>/logout.php">
 Logout
