@@ -196,13 +196,18 @@ min-height: calc(100vh - 180px); /* sakto hanggang footer */
 
 /* CARD */
 
-.card{
-padding:16px;
-background:#111;
-border:1px solid #2a2a2a;
-border-radius:6px;
-box-sizing:border-box;
-height:100%;
+.card {
+  background-color: #ffffff; /* white card */
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb; /* subtle border */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
 }
 
 /* STAT CARDS */

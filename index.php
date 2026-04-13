@@ -8,29 +8,50 @@ session_start();
     <title>C'Flame Fire Protection Product Trading</title>
 
     <style>
-        body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-image: 
-        linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)),
-        url('logo.png');
-    background-repeat: repeat;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-        .topbar {
-            background: #991e1e;
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+/* BODY */
+body {
+  background-color: #FFF3E0;
+  font-family: Arial, sans-serif;
+}
 
-        .topbar small {
-            font-size: 13px;
-            font-weight: normal;
-            display: block;
-        }
+/* BACKGROUND LOGO */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url('logo.png');
+  background-repeat: repeat;
+  background-size: 200px;
+  opacity: 0.05;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* TOPBAR */
+.topbar {
+  background: #991e1e;
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  /* MAKE SURE NO SPACE */
+  width: 100%;
+}
+
+/* TEXT STYLE */
+.topbar small {
+  font-size: 13px;
+  font-weight: normal;
+  display: block;
+}
 
         .admin-btn {
             background: white;

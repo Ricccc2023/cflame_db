@@ -207,7 +207,7 @@ $order_id = $_GET['order'] ?? null;
 
 <?php if(!$order_id): ?>
 
-<div class="card" style="text-align:center;">
+<div class="card" style="text-align:center; background-color: #4c463c;">
 <form method="POST">
 <button class="btn-save" name="start_pos">Start New Sale</button>
 </form>
