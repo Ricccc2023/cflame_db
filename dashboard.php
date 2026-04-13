@@ -63,7 +63,7 @@ $monthly_sales = $row['total'] ?? 0;
 
 /*
 |--------------------------------------------------------------------------
-| LOW STOCKS (INVENTORY)
+| LOW STOCKS
 |--------------------------------------------------------------------------
 */
 
@@ -84,7 +84,7 @@ while($row = mysqli_fetch_assoc($q)){
 
 /*
 |--------------------------------------------------------------------------
-| PENDING ORDERS TODAY
+| PENDING ORDERS
 |--------------------------------------------------------------------------
 */
 
@@ -102,7 +102,7 @@ $pending_today = $row['total'] ?? 0;
 
 /*
 |--------------------------------------------------------------------------
-| SALES TREND (LAST 7 DAYS)
+| SALES TREND
 |--------------------------------------------------------------------------
 */
 
@@ -110,7 +110,6 @@ $trend_labels = [];
 $trend_data = [];
 
 for($i=6;$i>=0;$i--){
-
     $date = date("Y-m-d",strtotime("-$i days"));
 
     $q = mysqli_query($conn,"
@@ -129,7 +128,7 @@ for($i=6;$i>=0;$i--){
 
 /*
 |--------------------------------------------------------------------------
-| TOP SELLING PRODUCTS
+| TOP PRODUCTS
 |--------------------------------------------------------------------------
 */
 
@@ -167,10 +166,9 @@ while($row=mysqli_fetch_assoc($q)){
 
 <div class="dashboard-grid">
 
-<!-- SALES OVERVIEW -->
+<!-- SALES -->
 
 <div class="card stat-card">
-
 <h3>Sales Overview</h3>
 
 <select id="salesView" class="sales-select">
@@ -182,20 +180,17 @@ while($row=mysqli_fetch_assoc($q)){
 <div class="stat-value" id="salesValue">
 ₱<?= number_format($daily_sales,2) ?>
 </div>
-
 </div>
 
 
-<!-- LOW STOCK ALERT -->
+<!-- LOW STOCK -->
 
 <div class="card stat-card">
-
 <h3>Low Stock Alert</h3>
 
 <div style="text-align:left; margin-top:10px;">
 
 <?php if(count($low_stock_list) > 0): ?>
-
 <?php foreach($low_stock_list as $item): ?>
 
 <div style="margin-bottom:8px;">
@@ -204,32 +199,23 @@ while($row=mysqli_fetch_assoc($q)){
 </div>
 
 <?php endforeach; ?>
-
 <?php else: ?>
-
 <div style="color:#555;">No low stock items</div>
-
 <?php endif; ?>
 
 </div>
-
 </div>
 
 
-<!-- PENDING ORDERS TODAY -->
+<!-- PENDING -->
 
 <div class="card stat-card">
-
 <h3>Pending Orders Today</h3>
-
-<div class="stat-value">
-<?= $pending_today ?>
-</div>
-
+<div class="stat-value"><?= $pending_today ?></div>
 </div>
 
 
-<!-- SALES TREND -->
+<!-- TREND -->
 
 <div class="card">
 <h3>Sales Trend</h3>
@@ -240,12 +226,11 @@ while($row=mysqli_fetch_assoc($q)){
 <!-- TOP PRODUCTS -->
 
 <div class="card">
-<h3>Top Selling Products</h3>
+<h3>Top Products</h3>
 <canvas id="topProducts"></canvas>
 </div>
 
 </div>
-
 </div>
 
 
@@ -253,7 +238,7 @@ while($row=mysqli_fetch_assoc($q)){
 
 <script>
 
-/* SALES VIEW SWITCHER */
+/* SALES SWITCH */
 
 const salesData = {
     daily: <?= $daily_sales ?>,
@@ -262,60 +247,64 @@ const salesData = {
 };
 
 document.getElementById('salesView').addEventListener('change', function(){
-
-    let value = this.value;
-    let amount = salesData[value];
-
+    let amount = salesData[this.value];
     document.getElementById('salesValue').innerText =
-        '₱' + Number(amount).toLocaleString(undefined, {minimumFractionDigits:2});
-
+        '₱' + Number(amount).toLocaleString(undefined,{minimumFractionDigits:2});
 });
 
 
-/* SALES TREND */
+/* TREND */
 
 new Chart(document.getElementById('salesTrend'),{
-
 type:'line',
-
 data:{
 labels: <?= json_encode($trend_labels) ?>,
 datasets:[{
-label:'Sales',
 data: <?= json_encode($trend_data) ?>,
 borderColor:'#8B0000',
 backgroundColor:'rgba(139,0,0,0.1)',
-fill:true,
-tension:0.3
+fill:true
 }]
 },
-
-options:{
-responsive:true,
-plugins:{legend:{display:false}}
-}
-
+options:{plugins:{legend:{display:false}}}
 });
 
 
-/* TOP PRODUCTS */
+/* TOP PRODUCTS FIXED */
 
 new Chart(document.getElementById('topProducts'),{
 
-type:'bar',
+type:'doughnut',
 
 data:{
 labels: <?= json_encode($product_labels) ?>,
 datasets:[{
-label:'Units Sold',
 data: <?= json_encode($product_data) ?>,
-backgroundColor:'#8B0000'
+backgroundColor:[
+'#36A2EB',
+'#FF6384',
+'#FF9F40',
+'#4BC0C0',
+'#FFCD56'
+]
 }]
 },
 
 options:{
 responsive:true,
-plugins:{legend:{display:false}}
+maintainAspectRatio:false,
+
+plugins:{
+legend:{
+position:'bottom',
+labels:{
+color:'#ccc',
+boxWidth:14,
+padding:15,
+font:{size:12}
+}
+}
+}
 }
 
 });
@@ -329,26 +318,17 @@ plugins:{legend:{display:false}}
 display:grid;
 grid-template-columns: repeat(3, 1fr);
 gap:20px;
-width:100%;
 }
 
-.dashboard-grid .card{
+.card{
 padding:20px;
 background:#fff;
 border:1px solid #e5e5e5;
 border-radius:6px;
-width:100%;
-box-sizing:border-box;
+margin-top: 0;
 }
 
-.stat-card{
-text-align:center;
-}
-
-.stat-card h3{
-margin-bottom:5px;
-font-weight:500;
-}
+.stat-card{text-align:center;}
 
 .stat-value{
 font-size:28px;
@@ -360,16 +340,13 @@ color:#8B0000;
 margin-top:10px;
 padding:6px;
 width:100%;
-border:1px solid #ccc;
-border-radius:4px;
 }
 
-.dashboard-grid .card:nth-child(4){
-grid-column: span 2;
-}
+.dashboard-grid .card:nth-child(4){grid-column: span 2;}
+.dashboard-grid .card:nth-child(5){grid-column: span 1;}
 
-.dashboard-grid .card:nth-child(5){
-grid-column: span 1;
+#topProducts{
+height:260px !important;
 }
 
 canvas{
@@ -378,16 +355,7 @@ height:320px !important;
 }
 
 @media(max-width:1200px){
-
-.dashboard-grid{
-grid-template-columns:1fr;
-}
-
-.dashboard-grid .card:nth-child(4),
-.dashboard-grid .card:nth-child(5){
-grid-column: span 1;
-}
-
+.dashboard-grid{grid-template-columns:1fr;}
 }
 
 </style>
