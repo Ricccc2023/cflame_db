@@ -14,7 +14,7 @@ html, body {
 }
 
 body {
-  background-color: #f2f2f2;
+  background-color: #FFF3E0;
   position: relative;
 }
 
@@ -53,7 +53,7 @@ body::before {
 
 .topbar {
   width: 100%;
-  background: #991e1e;
+  background: #D62828;
   color: #fff;
 
   padding: 18px 20px;
@@ -168,7 +168,7 @@ color: #ffffff !important;
   border: 1px solid #ddd;
   padding: 15px;
   margin-bottom: 20px;
-  background: #fff;
+  background: #FFF3E0;
 }
 
 .card h2 {
@@ -191,7 +191,7 @@ table {
 }
 
 th {
-  background: #f1f1f1;
+  background: #5e584e;
   text-align: left;
   padding: 10px;
   border: 1px solid #ccc;
@@ -798,7 +798,7 @@ tr:hover {
 }
 /* Sidebar base */
 .sidebar {
-    background: #991e1e; /* keep your dark green */
+    background: #D62828; /* keep your dark green */
 }
 
 /* ALL links inside sidebar */

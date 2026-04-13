@@ -1,11 +1,8 @@
 <?php
 require_once '../includes/config.php';
+require_once '../includes/sms_textbee.php';
 
 $id = intval($_GET['id']);
-
-/* ===============================
-GET PENDING ORDER
-=============================== */
 
 $pending = mysqli_fetch_assoc(mysqli_query($conn,"
 SELECT * FROM pending_orders WHERE id=$id
@@ -17,30 +14,34 @@ exit;
 }
 
 /* ===============================
-MOVE RECEIPT IMAGE
+SMS DATA
+=============================== */
+$name = $pending['customer_name'];
+$contact = $pending['contact'];
+$address = $pending['address'];
+$payment = $pending['mode_of_payment'];
+$date = date("F d, Y");
+
+/* ===============================
+MOVE RECEIPT
 =============================== */
 
 $receipt = $pending['receipt_image'];
 
 if($receipt){
-
-$source = "uploads/".$receipt;                 // pendings/uploads
-$destination = "../orders/uploads/".$receipt;  // orders/uploads
+$source = "uploads/".$receipt;
+$destination = "../orders/uploads/".$receipt;
 
 if(file_exists($source)){
-
 if(!is_dir("../orders/uploads")){
 mkdir("../orders/uploads",0777,true);
 }
-
 rename($source,$destination);
-
 }
-
 }
 
 /* ===============================
-GET ITEMS + STOCK
+STOCK CHECK
 =============================== */
 
 $items = mysqli_query($conn,"
@@ -53,77 +54,53 @@ ON products.id = pending_order_items.product_id
 WHERE pending_order_items.pending_order_id = $id
 ");
 
-/* ===============================
-CHECK STOCK
-=============================== */
-
 $insufficient = [];
 
 while($row=mysqli_fetch_assoc($items)){
-
 if($row['quantity'] > $row['stock']){
-
 $insufficient[] =
 $row['product_name']." (Needed ".$row['quantity']." / Stock ".$row['stock'].")";
-
 }
-
 }
 
 if(count($insufficient)>0){
-
 $message="Insufficient stock for: ".implode(", ",$insufficient);
-
 header("Location:index.php?error=".urlencode($message));
 exit;
-
 }
 
-
 /* ===============================
-CUSTOMER DETECTION
+CUSTOMER
 =============================== */
 
-$name = trim($pending['customer_name']);
-$contact = trim($pending['contact']);
-$address = trim($pending['address']);
-
-$name = mysqli_real_escape_string($conn,$name);
-$contact = mysqli_real_escape_string($conn,$contact);
-$address = mysqli_real_escape_string($conn,$address);
-
-
-/* CHECK EXISTING CUSTOMER */
+$nameEsc = mysqli_real_escape_string($conn,$name);
+$contactEsc = mysqli_real_escape_string($conn,$contact);
+$addressEsc = mysqli_real_escape_string($conn,$address);
 
 $check = mysqli_query($conn,"
 SELECT * FROM customers
-WHERE TRIM(customer_name)='$name'
-OR TRIM(contact)='$contact'
+WHERE TRIM(customer_name)='$nameEsc'
+OR TRIM(contact)='$contactEsc'
 LIMIT 1
 ");
 
 if(mysqli_num_rows($check)>0){
-
 $customer=mysqli_fetch_assoc($check);
 $customer_id=$customer['id'];
 
 mysqli_query($conn,"
-UPDATE customers
-SET address='$address'
-WHERE id=$customer_id
+UPDATE customers SET address='$addressEsc' WHERE id=$customer_id
 ");
 
 }else{
 
 mysqli_query($conn,"
 INSERT INTO customers(customer_name,contact,address)
-VALUES('$name','$contact','$address')
+VALUES('$nameEsc','$contactEsc','$addressEsc')
 ");
 
 $customer_id=mysqli_insert_id($conn);
-
 }
-
 
 /* ===============================
 CREATE ORDER
@@ -131,38 +108,23 @@ CREATE ORDER
 
 mysqli_query($conn,"
 INSERT INTO orders(customer_id,order_date,total,mode_of_payment,receipt_image)
-VALUES(
-$customer_id,
-CURDATE(),
-0,
-'".$pending['mode_of_payment']."',
-'$receipt'
-)
+VALUES($customer_id,CURDATE(),0,'$payment','$receipt')
 ");
 
 $order_id=mysqli_insert_id($conn);
 
-
-/* ===============================
-GENERATE INVOICE
-=============================== */
-
 $invoice = "INV-".date("Ymd")."-".$order_id;
 
 mysqli_query($conn,"
-UPDATE orders
-SET invoice_no='$invoice'
-WHERE id=$order_id
+UPDATE orders SET invoice_no='$invoice' WHERE id=$order_id
 ");
 
-
 /* ===============================
-INSERT ORDER ITEMS
+ITEMS
 =============================== */
 
 $items = mysqli_query($conn,"
-SELECT * FROM pending_order_items
-WHERE pending_order_id=$id
+SELECT * FROM pending_order_items WHERE pending_order_id=$id
 ");
 
 $total=0;
@@ -176,50 +138,49 @@ $subtotal=$row['subtotal'];
 
 $total += $subtotal;
 
-/* INSERT ORDER ITEM */
-
 mysqli_query($conn,"
 INSERT INTO order_items(order_id,product_id,quantity,price,subtotal)
 VALUES($order_id,$pid,$qty,$price,$subtotal)
 ");
 
-/* UPDATE STOCK */
-
 mysqli_query($conn,"
-UPDATE products
-SET quantity = quantity - $qty
-WHERE id = $pid
+UPDATE products SET quantity = quantity - $qty WHERE id = $pid
 ");
-
 }
 
+mysqli_query($conn,"
+UPDATE orders SET total=$total,total_amount=$total WHERE id=$order_id
+");
 
 /* ===============================
-UPDATE TOTAL
+DELETE PENDING
 =============================== */
 
-mysqli_query($conn,"
-UPDATE orders
-SET total=$total,total_amount=$total
-WHERE id=$order_id
-");
-
+mysqli_query($conn,"DELETE FROM pending_order_items WHERE pending_order_id=$id");
+mysqli_query($conn,"DELETE FROM pending_orders WHERE id=$id");
 
 /* ===============================
-DELETE PENDING DATA
+SEND SMS
 =============================== */
 
-mysqli_query($conn,"
-DELETE FROM pending_order_items
-WHERE pending_order_id=$id
-");
+$message = "Hi $name,
 
-mysqli_query($conn,"
-DELETE FROM pending_orders
-WHERE id=$id
-");
+Your order has been CONFIRMED ✅
 
+Address: $address
+Payment: $payment
 
-header("Location: ../orders/index.php");
+Delivery Date: $date
+Please prepare payment (Cash on Delivery).
+
+Thank you!";
+
+$sms = sms_textbee_send($contact, $message);
+
+$status = $sms['ok'] ? 'confirmed' : 'sms_failed';
+
+/* =============================== */
+
+header("Location: ../orders/index.php?success=".$status);
 exit;
 ?>

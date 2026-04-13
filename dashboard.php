@@ -168,7 +168,7 @@ while($row=mysqli_fetch_assoc($q)){
 
 <!-- SALES -->
 
-<div class="card stat-card">
+<div class="card-dashboard stat-card">
 <h3>Sales Overview</h3>
 
 <select id="salesView" class="sales-select">
@@ -320,12 +320,18 @@ grid-template-columns: repeat(3, 1fr);
 gap:20px;
 }
 
-.card{
-padding:20px;
-background:#fff;
-border:1px solid #e5e5e5;
-border-radius:6px;
-margin-top: 0;
+.card {
+  background-color: #ffffff; /* white card */
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb; /* subtle border */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
 }
 
 .stat-card{text-align:center;}
